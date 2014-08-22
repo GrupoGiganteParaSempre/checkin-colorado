@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Generated with http://android-holo-colors.com -->
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <style name="CheckinTheme" parent="@style/_CheckinTheme"/>
+
+  <style name="_CheckinTheme" parent="android:Theme.Holo.Light.DarkActionBar">
+
+    <item name="android:editTextBackground">@drawable/checkintheme_edit_text_holo_light</item>
+
+    <item name="android:textColorHighlight">#99b0120a</item>
+    <item name="android:textSelectHandleLeft">@drawable/checkintheme_text_select_handle_left</item>
+    <item name="android:textSelectHandleRight">@drawable/checkintheme_text_select_handle_right</item>
+    <item name="android:textSelectHandle">@drawable/checkintheme_text_select_handle_middle</item>
+
+    <item name="android:autoCompleteTextViewStyle">@style/AutoCompleteTextViewCheckinTheme</item>
+
+    <item name="android:listChoiceIndicatorMultiple">@drawable/checkintheme_btn_check_holo_light</item>
+
+    <item name="android:buttonStyle">@style/ButtonCheckinTheme</item>
+
+    <item name="android:imageButtonStyle">@style/ImageButtonCheckinTheme</item>
+
+    <item name="android:progressBarStyleHorizontal">@style/ProgressBarCheckinTheme</item>
+
+    <item name="android:buttonStyleToggle">@style/ToggleCheckinTheme</item>
+
+    <item name="android:listChoiceBackgroundIndicator">@drawable/checkintheme_list_selector_holo_light</item>
+
+    <item name="android:activatedBackgroundIndicator">@drawable/checkintheme_activated_background_holo_light</item>
+
+    <item name="android:fastScrollThumbDrawable">@drawable/checkintheme_fastscroll_thumb_holo</item>
+
+  </style>
+
+</resources>

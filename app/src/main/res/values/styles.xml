@@ -79,4 +79,46 @@
         <item name="android:dropDownListViewStyle">@style/DropDownListView.Checkinstyle</item>
     </style>
 
+    <style name="AutoCompleteTextViewCheckinTheme" parent="android:Widget.Holo.Light.AutoCompleteTextView">
+        <item name="android:dropDownSelector">@drawable/checkintheme_list_selector_holo_light</item>
+        <item name="android:background">@drawable/checkintheme_edit_text_holo_light</item>
+    </style>
+
+    <style name="ButtonCheckinTheme" parent="android:Widget.Holo.Light.Button">
+        <item name="android:background">@drawable/checkintheme_btn_default_holo_light</item>
+    </style>
+
+    <style name="ImageButtonCheckinTheme" parent="android:Widget.Holo.Light.ImageButton">
+        <item name="android:background">@drawable/checkintheme_btn_default_holo_light</item>
+    </style>
+
+    <style name="TabCheckinTheme">
+        <item name="android:gravity">center_horizontal</item>
+        <item name="android:paddingLeft">16dip</item>
+        <item name="android:paddingRight">16dip</item>
+        <item name="android:background">@drawable/checkintheme_tab_indicator_holo</item>
+        <item name="android:layout_width">0dip</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:minWidth">80dip</item>
+    </style>
+
+    <style name="TabTextCheckinTheme">
+        <item name="android:textColor">#000000</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+        <!-- v14 <item name="android:textAllCaps">true</item> -->
+        <item name="android:ellipsize">marquee</item>
+        <item name="android:maxLines">2</item>
+        <item name="android:maxWidth">180dip</item>
+    </style>
+
+    <style name="ProgressBarCheckinTheme" parent="android:Widget.Holo.Light.ProgressBar.Horizontal">
+        <item name="android:progressDrawable">@drawable/checkintheme_progress_horizontal_holo_light</item>
+        <item name="android:indeterminateDrawable">@drawable/checkintheme_progress_indeterminate_horizontal_holo_light</item>
+    </style>
+
+    <style name="ToggleCheckinTheme" parent="android:Widget.Holo.Light.Button.Toggle">
+        <item name="android:background">@drawable/checkintheme_btn_toggle_holo_light</item>
+    </style>
+
 </resources>
