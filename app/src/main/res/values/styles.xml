@@ -25,11 +25,14 @@
         <item name="android:dropDownListViewStyle">@style/DropDownListView.Checkinstyle</item>
         <item name="android:actionBarTabStyle">@style/ActionBarTabStyle.Checkinstyle</item>
         <item name="android:actionDropDownStyle">@style/DropDownNav.Checkinstyle</item>
-        <item name="android:actionBarStyle">@style/ActionBar.Solid.Checkinstyle</item>
+        <item name="android:actionBarStyle">@style/ActionBar.Transparent.Checkinstyle</item>
+        <item name="android:windowActionBarOverlay">true</item>
         <item name="android:actionModeBackground">@drawable/cab_background_top_checkinstyle</item>
         <item name="android:actionModeSplitBackground">@drawable/cab_background_bottom_checkinstyle</item>
         <item name="android:actionModeCloseButtonStyle">@style/ActionButton.CloseMode.Checkinstyle</item>
-        
+
+        <item name="android:windowContentOverlay">@null</item>
+
                 <!-- Light.DarkActionBar specific -->
         <item name="android:actionBarWidgetTheme">@style/Theme.Checkinstyle.Widget</item>
 
@@ -42,9 +45,15 @@
         <item name="android:progressBarStyle">@style/ProgressBar.Checkinstyle</item>
     </style>
 
-    <style name="ActionBar.Transparent.Checkinstyle" parent="@android:style/Widget.Holo.ActionBar">
-        <item name="android:background">@drawable/ab_transparent_checkinstyle</item>
+    <style name="ActionBar.Transparent.Checkinstyle" parent="@android:style/Widget.Holo.Light.ActionBar">
+        <!--<item name="android:background">@drawable/ab_transparent_checkinstyle</item>-->
+        <item name="android:background">@android:color/transparent</item>
         <item name="android:progressBarStyle">@style/ProgressBar.Checkinstyle</item>
+        <item name="android:titleTextStyle">@style/ActionBar.TitleTextStyle.Checkinstyle</item>
+    </style>
+
+    <style name="ActionBar.TitleTextStyle.Checkinstyle" parent="@android:style/TextAppearance.Holo.Widget.ActionBar.Title">
+        <item name="android:textColor">@android:color/white</item>
     </style>
 
     <style name="PopupMenu.Checkinstyle" parent="@android:style/Widget.Holo.ListPopupWindow">
@@ -77,6 +86,11 @@
     <style name="Theme.Checkinstyle.Widget" parent="@android:style/Theme.Holo">
         <item name="android:popupMenuStyle">@style/PopupMenu.Checkinstyle</item>
         <item name="android:dropDownListViewStyle">@style/DropDownListView.Checkinstyle</item>
+    </style>
+
+    <style name="EditTextCheckinTheme" parent="android:Widget.EditText">
+        <item name="android:background">@drawable/checkintheme_edit_text_holo_light</item>
+        <item name="android:textColor">#000000</item>
     </style>
 
     <style name="AutoCompleteTextViewCheckinTheme" parent="android:Widget.Holo.Light.AutoCompleteTextView">
