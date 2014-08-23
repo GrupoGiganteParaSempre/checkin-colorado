@@ -2,6 +2,7 @@ package me.gpsbr.check_in;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -19,12 +20,17 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        /* ScrollView stuff */
         mActionBarBackgroundDrawable = getResources().getDrawable(R.drawable.ab_solid_checkinstyle);
         mActionBarBackgroundDrawable.setAlpha(0);
-
         getActionBar().setBackgroundDrawable(mActionBarBackgroundDrawable);
-
         ((NotifyingScrollView) findViewById(R.id.scroll_view)).setOnScrollChangedListener(mOnScrollChangedListener);
+
+        /* Caso o usuário não tenha informado dados de login, joga ele na tela de login */
+        if (true) {
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+        }
     }
 
     private NotifyingScrollView.OnScrollChangedListener mOnScrollChangedListener = new NotifyingScrollView.OnScrollChangedListener() {
