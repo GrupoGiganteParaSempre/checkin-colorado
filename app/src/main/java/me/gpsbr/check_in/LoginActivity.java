@@ -2,12 +2,11 @@ package me.gpsbr.check_in;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -15,9 +14,6 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -43,9 +39,11 @@ import java.net.CookiePolicy;
  */
 public class LoginActivity extends Activity {
 
-    /**
-     * Keep track of the login task to ensure we can cancel it if requested.
-     */
+    // ------------------------------------------------------------------------------------- //
+    // - Properties ------------------------------------------------------------------------ //
+    // ------------------------------------------------------------------------------------- //
+
+    // Keep track of the login task to ensure we can cancel it if requested.
     private UserLoginTask mAuthTask = null;
 
     // UI references
@@ -57,16 +55,35 @@ public class LoginActivity extends Activity {
     // Credentials
     private SharedPreferences credentials;
 
+    // Caching
+    private int mShortAnimationDuration;
+
+    // ------------------------------------------------------------------------------------- //
+    // - Basic methods --------------------------------------------------------------------- //
+    // ------------------------------------------------------------------------------------- //
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Android inicialization
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        // Loading credentials from shared preferences
         credentials = getSharedPreferences("credentials", 0);
 
-        // Set up the login form.
+        // Caching the system's default "short" animation time.
+        mShortAnimationDuration = getResources().getInteger(
+                android.R.integer.config_shortAnimTime);
+
+
+        // Set up the login form references
         mRegistrationNumber = (EditText) findViewById(R.id.registration_number);
         mPassword = (EditText) findViewById(R.id.password);
+        mProgressView = findViewById(R.id.login_progress);
+        mLoginFormView = findViewById(R.id.login_form);
+        Button mLoginButton = (Button) findViewById(R.id.login_button);
+
+        // Set up the login form actions
         mPassword.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
@@ -78,22 +95,15 @@ public class LoginActivity extends Activity {
             }
         });
 
-        Button mLoginButton = (Button) findViewById(R.id.login_button);
-        mLoginButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                attemptLogin();
-            }
-        });
-
-        mLoginFormView = findViewById(R.id.login_form);
-        mProgressView = findViewById(R.id.login_progress);
-
-        /* Submete o fomulário caso já se tenha uma matrícula e senha registradas */
+        // Autofill and submit the form in case we have already registered number and password
         if (credentials.getString("registration_number", "") != "") {
+            Log.d("onCreate", "Credenciais encontradas");
             mRegistrationNumber.setText(credentials.getString("registration_number", ""));
             mPassword.setText(credentials.getString("password", ""));
             mLoginButton.callOnClick();
+        } else {
+            Log.d("onCreate", "Credenciais não encontradas");
+            toggleForm();
         }
 
     }
@@ -111,31 +121,92 @@ public class LoginActivity extends Activity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
+
         if (id == R.id.action_logout) {
+            // Clear login/password references
             SharedPreferences.Editor editor = credentials.edit();
-            editor.putString("matricula", "");
-            editor.putString("senha", "");
+            editor.putString("registration_number", "");
+            editor.putString("password", "");
             editor.commit();
+
+            // Go back to the main activity (LoginActivity)
+            Intent intent = new Intent(LoginActivity.this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
         } else if (id == R.id.action_exit) {
+            // Exit the application
             finish();
             System.exit(0);
         } else if (id == R.id.action_about) {
-            return true;
+            // Go to AboutActivity
+            // Intent intent = new Intent(LoginActivity.this, AboutActivity.class);
+            // startActivity(intent);
         }
         return super.onOptionsItemSelected(item);
     }
 
+    // ------------------------------------------------------------------------------------- //
+    // - Other methods --------------------------------------------------------------------- //
+    // ------------------------------------------------------------------------------------- //
 
+    private void toggleForm() {
 
+        // Set the content view to 0% opacity but visible, so that it is visible
+        // (but fully transparent) during the animation.
 
+        final View viewToHide;
+        final View viewToShow;
+
+        if (mLoginFormView.getVisibility() == View.VISIBLE) {
+            viewToHide = mLoginFormView;
+            viewToShow = mProgressView;
+        } else {
+            viewToHide = mProgressView;
+            viewToShow = mLoginFormView;
+        }
+
+        viewToShow.setAlpha(0f);
+        viewToShow.setVisibility(View.VISIBLE);
+
+        // Animate the content view to 100% opacity, and clear any animation
+        // listener set on the view.
+        viewToShow.animate()
+            .alpha(1f)
+            .setDuration(mShortAnimationDuration)
+            .setListener(null);
+
+        // Animate the loading view to 0% opacity. After the animation ends,
+        // set its visibility to GONE as an optimization step (it won't
+        // participate in layout passes, etc.)
+        viewToHide.animate()
+            .alpha(0f)
+            .setDuration(mShortAnimationDuration)
+            .setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    viewToHide.setVisibility(View.GONE);
+                }
+            });
+    }
+
+    private void showToast(CharSequence text) {
+        Context context = getApplicationContext();
+        int duration = Toast.LENGTH_SHORT;
+        Toast toast = Toast.makeText(context, text, duration);
+        toast.show();
+    }
 
     /**
      * Attempts to sign in or register the account specified by the login form.
      * If there are form errors (invalid email, missing fields, etc.), the
      * errors are presented and no actual login attempt is made.
      */
+    public void attemptLogin(View view) {
+        attemptLogin();
+    }
     public void attemptLogin() {
 
+        // Hide keyboard
         InputMethodManager imm = (InputMethodManager)getSystemService(
                 Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(mPassword.getWindowToken(), 0);
@@ -155,15 +226,14 @@ public class LoginActivity extends Activity {
         boolean cancel = false;
         View focusView = null;
 
-
-        // Valida a senha
+        // Validates password
         if (!TextUtils.isEmpty(password) && !validatePassword(password)) {
             mPassword.setError(getString(R.string.error_invalid_password));
             focusView = mPassword;
             cancel = true;
         }
 
-        // Valida o número de matrícula
+        // Validates registration number
         if (TextUtils.isEmpty(registration_number)) {
             mRegistrationNumber.setError(getString(R.string.error_mandatory_field));
             focusView = mRegistrationNumber;
@@ -181,7 +251,7 @@ public class LoginActivity extends Activity {
         } else {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
-            showProgress(true);
+            toggleForm();
             mAuthTask = new UserLoginTask(registration_number, password);
             mAuthTask.execute((Void) null);
         }
@@ -192,42 +262,6 @@ public class LoginActivity extends Activity {
 
     private boolean validatePassword(String password) {
         return password.length() == 6;
-    }
-
-    /**
-     * Shows the progress UI and hides the login form.
-     */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
-    public void showProgress(final boolean show) {
-        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
-        // for very easy animations. If available, use these APIs to fade-in
-        // the progress spinner.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
-
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-            mLoginFormView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-                }
-            });
-
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mProgressView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-                }
-            });
-        } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
     }
 
     /**
@@ -262,8 +296,8 @@ public class LoginActivity extends Activity {
             String url = "http://internacional.com.br/checkincolorado/logar.php";
 
             RequestBody formBody = new FormEncodingBuilder()
-                    .add("matricula", mRegistrationNumber)
-                    .add("senha", mPassword)
+                    .add("registration_number", mRegistrationNumber)
+                    .add("password", mPassword)
                     .build();
 
             Request request = new Request.Builder()
@@ -317,9 +351,10 @@ public class LoginActivity extends Activity {
         @Override
         protected void onPostExecute(final Boolean success) {
             mAuthTask = null;
-            showProgress(false);
+            toggleForm();
 
             if (success) {
+                showToast("Identificação aceita");
                 finish();
             } else {
                 if (errorId == 1) {
@@ -329,11 +364,7 @@ public class LoginActivity extends Activity {
                     LoginActivity.this.mPassword.setError(getString(R.string.error_incorrect_password));
                     LoginActivity.this.mPassword.requestFocus();
                 } else {
-                    Context context = getApplicationContext();
-                    CharSequence text = "Um erro ocorreu, tente novamente mais tarde";
-                    int duration = Toast.LENGTH_SHORT;
-                    Toast toast = Toast.makeText(context, text, duration);
-                    toast.show();
+                    showToast("Um erro ocorreu, tente novamente mais tarde");
                 }
             }
         }
@@ -341,7 +372,7 @@ public class LoginActivity extends Activity {
         @Override
         protected void onCancelled() {
             mAuthTask = null;
-            showProgress(false);
+            toggleForm();
         }
     }
 }
