@@ -9,5 +9,8 @@
     <string name="action_logout">Deslogar</string>
     <string name="action_about">Sobre</string>
     <string name="action_exit">Sair</string>
+    <string name="title_activity_about">Sobre</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
 
 </resources>
