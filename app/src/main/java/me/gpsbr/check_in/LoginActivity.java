@@ -296,11 +296,13 @@ public class LoginActivity extends Activity {
             OkHttpClient client = new OkHttpClient();
             client.setCookieHandler(cookieManager);
 
+            Log.d("trying-credentials", mRegistrationNumber+" "+mPassword);
+
             String url = "http://internacional.com.br/checkincolorado/logar.php";
 
             RequestBody formBody = new FormEncodingBuilder()
-                    .add("registration_number", mRegistrationNumber)
-                    .add("password", mPassword)
+                    .add("matricula", mRegistrationNumber)
+                    .add("senha", mPassword)
                     .build();
 
             Request request = new Request.Builder()
@@ -359,7 +361,7 @@ public class LoginActivity extends Activity {
             if (success) {
                 showToast("Identificação aceita");
                 // Chama CheckinActivity
-                finish();
+//                finish();
             } else {
                 if (errorId == 1) {
                     LoginActivity.this.mRegistrationNumber.setError(getString(R.string.error_invalid_registration_number));
