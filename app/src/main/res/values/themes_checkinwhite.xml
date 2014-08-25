@@ -2,7 +2,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <style name="CheckinWhite" parent="android:Theme.Black">
+    <style name="CheckinWhite" parent="android:Theme.Holo.Light.DarkActionBar">
 
         <!-- Generated with http://android-holo-colors.com -->
         <item name="android:editTextStyle">@style/EditTextCheckinWhite</item>
@@ -12,7 +12,13 @@
         <item name="android:radioButtonStyle">@style/RadioButtonCheckinWhite</item>
         <item name="android:buttonStyle">@style/ButtonCheckinWhite</item>
         <item name="android:imageButtonStyle">@style/ImageButtonCheckinWhite</item>
+        <item name="android:spinnerStyle">@style/SpinnerCheckinWhite</item>
+        <item name="android:spinnerDropDownItemStyle">@style/SpinnerDropDownItemCheckinWhite</item>
         <item name="android:progressBarStyleHorizontal">@style/ProgressBarCheckinWhite</item>
+        <item name="android:seekBarStyle">@style/SeekBarCheckinWhite</item>
+        <item name="android:ratingBarStyle">@style/RatingBarCheckinWhite</item>
+        <item name="android:ratingBarStyleIndicator">@style/RatingBarBigCheckinWhite</item>
+        <item name="android:ratingBarStyleSmall">@style/RatingBarSmallCheckinWhite</item>
         <item name="android:buttonStyleToggle">@style/ToggleCheckinWhite</item>
         <item name="android:listViewStyle">@style/ListViewCheckinWhite</item>
         <item name="android:listViewWhiteStyle">@style/ListViewCheckinWhite.White</item>
@@ -29,6 +35,10 @@
         <item name="android:actionModeSplitBackground">@drawable/cab_background_bottom_checkinwhite</item>
         <item name="android:actionModeCloseButtonStyle">@style/ActionButton.CloseMode.Checkinwhite</item>
         <item name="android:actionBarWidgetTheme">@style/Theme.Checkinwhite.Widget</item>
+
+        <!-- Action bar overlay -->
+        <item name="android:windowActionBarOverlay">true</item>
+        <item name="android:windowContentOverlay">@null</item>
     </style>
 
 </resources>
