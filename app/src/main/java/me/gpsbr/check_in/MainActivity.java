@@ -3,6 +3,7 @@ package me.gpsbr.check_in;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import android.widget.ScrollView;
 public class MainActivity extends Activity {
 
     private Drawable mActionBarBackgroundDrawable;
+    private SharedPreferences settings;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,11 +28,19 @@ public class MainActivity extends Activity {
         getActionBar().setBackgroundDrawable(mActionBarBackgroundDrawable);
         ((NotifyingScrollView) findViewById(R.id.scroll_view)).setOnScrollChangedListener(mOnScrollChangedListener);
 
+        /* Busca as informações de login */
+        settings = getSharedPreferences("credentials", 0);
+        String credencialMatricula = settings.getString("matricula", "");
+
         /* Caso o usuário não tenha informado dados de login, joga ele na tela de login */
-        if (true) {
-            Intent intent = new Intent(this, LoginActivity.class);
-            startActivity(intent);
+        if (credencialMatricula == "") {
+            callLogin();
         }
+    }
+
+    private void callLogin() {
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
     }
 
     private NotifyingScrollView.OnScrollChangedListener mOnScrollChangedListener = new NotifyingScrollView.OnScrollChangedListener() {
@@ -55,7 +65,16 @@ public class MainActivity extends Activity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_logout) {
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString("matricula", "");
+            editor.putString("senha", "");
+            editor.commit();
+            callLogin();
+        } else if (id == R.id.action_exit) {
+            finish();
+            System.exit(0);
+        } else if (id == R.id.action_about) {
             return true;
         }
         return super.onOptionsItemSelected(item);

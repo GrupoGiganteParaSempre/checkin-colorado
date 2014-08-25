@@ -33,7 +33,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:visibility="gone"/>
+            android:visibility="gone"
+            android:layout_weight="1"
+            android:layout_gravity="center_horizontal" />
 
             <LinearLayout
                 android:id="@+id/login_form"
@@ -59,7 +61,7 @@
                     android:imeActionId="@+id/login"
                     android:imeActionLabel="@string/acao_login"
                     android:imeOptions="actionUnspecified"
-                    android:inputType="textPassword"
+                    android:inputType="numberPassword"
                     android:maxLines="1"
                     android:singleLine="true"/>
 
