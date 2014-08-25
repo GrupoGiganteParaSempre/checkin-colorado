@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <style name="CheckinWhite" parent="android:Theme.Black">
+
+        <!-- Generated with http://android-holo-colors.com -->
+        <item name="android:editTextStyle">@style/EditTextCheckinWhite</item>
+        <item name="android:textColorHighlight">#99ffffff</item>
+        <item name="android:autoCompleteTextViewStyle">@style/AutoCompleteTextViewCheckinWhite</item>
+        <item name="android:checkboxStyle">@style/CheckBoxCheckinWhite</item>
+        <item name="android:radioButtonStyle">@style/RadioButtonCheckinWhite</item>
+        <item name="android:buttonStyle">@style/ButtonCheckinWhite</item>
+        <item name="android:imageButtonStyle">@style/ImageButtonCheckinWhite</item>
+        <item name="android:progressBarStyleHorizontal">@style/ProgressBarCheckinWhite</item>
+        <item name="android:buttonStyleToggle">@style/ToggleCheckinWhite</item>
+        <item name="android:listViewStyle">@style/ListViewCheckinWhite</item>
+        <item name="android:listViewWhiteStyle">@style/ListViewCheckinWhite.White</item>
+        <item name="android:spinnerItemStyle">@style/SpinnerItemCheckinWhite</item>
+
+        <!-- Generated with http://jgilfelt.github.io/android-actionbarstylegenerator -->
+        <item name="android:actionBarItemBackground">@drawable/selectable_background_checkinwhite</item>
+        <item name="android:popupMenuStyle">@style/PopupMenu.Checkinwhite</item>
+        <item name="android:dropDownListViewStyle">@style/DropDownListView.Checkinwhite</item>
+        <item name="android:actionBarTabStyle">@style/ActionBarTabStyle.Checkinwhite</item>
+        <item name="android:actionDropDownStyle">@style/DropDownNav.Checkinwhite</item>
+        <item name="android:actionBarStyle">@style/ActionBar.Transparent.Checkinwhite</item>
+        <item name="android:actionModeBackground">@drawable/cab_background_top_checkinwhite</item>
+        <item name="android:actionModeSplitBackground">@drawable/cab_background_bottom_checkinwhite</item>
+        <item name="android:actionModeCloseButtonStyle">@style/ActionButton.CloseMode.Checkinwhite</item>
+        <item name="android:actionBarWidgetTheme">@style/Theme.Checkinwhite.Widget</item>
+    </style>
+
+</resources>

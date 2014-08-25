@@ -3,35 +3,38 @@
 <!-- Generated with http://android-holo-colors.com -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
-  <style name="CheckinTheme" parent="@style/_CheckinTheme"/>
+    <style name="CheckinTheme" parent="@style/_CheckinTheme"/>
+    <style name="_CheckinTheme" parent="android:Theme.Holo.Light.DarkActionBar">
 
-  <style name="_CheckinTheme" parent="android:Theme.Holo.Light.DarkActionBar">
+        <!-- Generated with http://android-holo-colors.com -->
+        <item name="android:editTextBackground">@drawable/checkintheme_edit_text_holo_light</item>
+        <item name="android:textColorHighlight">#99b0120a</item>
+        <item name="android:textSelectHandleLeft">@drawable/checkintheme_text_select_handle_left</item>
+        <item name="android:textSelectHandleRight">@drawable/checkintheme_text_select_handle_right</item>
+        <item name="android:textSelectHandle">@drawable/checkintheme_text_select_handle_middle</item>
+        <item name="android:autoCompleteTextViewStyle">@style/AutoCompleteTextViewCheckinTheme</item>
+        <item name="android:listChoiceIndicatorMultiple">@drawable/checkintheme_btn_check_holo_light</item>
+        <item name="android:buttonStyle">@style/ButtonCheckinTheme</item>
+        <item name="android:imageButtonStyle">@style/ImageButtonCheckinTheme</item>
+        <item name="android:progressBarStyleHorizontal">@style/ProgressBarCheckinTheme</item>
+        <item name="android:buttonStyleToggle">@style/ToggleCheckinTheme</item>
+        <item name="android:listChoiceBackgroundIndicator">@drawable/checkintheme_list_selector_holo_light</item>
+        <item name="android:activatedBackgroundIndicator">@drawable/checkintheme_activated_background_holo_light</item>
+        <item name="android:fastScrollThumbDrawable">@drawable/checkintheme_fastscroll_thumb_holo</item>
 
-    <item name="android:editTextBackground">@drawable/checkintheme_edit_text_holo_light</item>
-
-    <item name="android:textColorHighlight">#99b0120a</item>
-    <item name="android:textSelectHandleLeft">@drawable/checkintheme_text_select_handle_left</item>
-    <item name="android:textSelectHandleRight">@drawable/checkintheme_text_select_handle_right</item>
-    <item name="android:textSelectHandle">@drawable/checkintheme_text_select_handle_middle</item>
-
-    <item name="android:autoCompleteTextViewStyle">@style/AutoCompleteTextViewCheckinTheme</item>
-
-    <item name="android:listChoiceIndicatorMultiple">@drawable/checkintheme_btn_check_holo_light</item>
-
-    <item name="android:buttonStyle">@style/ButtonCheckinTheme</item>
-
-    <item name="android:imageButtonStyle">@style/ImageButtonCheckinTheme</item>
-
-    <item name="android:progressBarStyleHorizontal">@style/ProgressBarCheckinTheme</item>
-
-    <item name="android:buttonStyleToggle">@style/ToggleCheckinTheme</item>
-
-    <item name="android:listChoiceBackgroundIndicator">@drawable/checkintheme_list_selector_holo_light</item>
-
-    <item name="android:activatedBackgroundIndicator">@drawable/checkintheme_activated_background_holo_light</item>
-
-    <item name="android:fastScrollThumbDrawable">@drawable/checkintheme_fastscroll_thumb_holo</item>
-
-  </style>
+        <!-- Generated with http://jgilfelt.github.io/android-actionbarstylegenerator -->
+        <item name="android:actionBarItemBackground">@drawable/selectable_background_checkinstyle</item>
+        <item name="android:popupMenuStyle">@style/PopupMenu.Checkinstyle</item>
+        <item name="android:dropDownListViewStyle">@style/DropDownListView.Checkinstyle</item>
+        <item name="android:actionBarTabStyle">@style/ActionBarTabStyle.Checkinstyle</item>
+        <item name="android:actionDropDownStyle">@style/DropDownNav.Checkinstyle</item>
+        <item name="android:actionBarStyle">@style/ActionBar.Transparent.Checkinstyle</item>
+        <item name="android:windowActionBarOverlay">true</item>
+        <item name="android:actionModeBackground">@drawable/cab_background_top_checkinstyle</item>
+        <item name="android:actionModeSplitBackground">@drawable/cab_background_bottom_checkinstyle</item>
+        <item name="android:actionModeCloseButtonStyle">@style/ActionButton.CloseMode.Checkinstyle</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:actionBarWidgetTheme">@style/Theme.Checkinstyle.Widget</item>
+    </style>
 
 </resources>
