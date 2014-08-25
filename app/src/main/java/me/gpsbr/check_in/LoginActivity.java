@@ -14,9 +14,16 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.ScaleAnimation;
+import android.view.animation.TranslateAnimation;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,8 +35,6 @@ import com.squareup.okhttp.Response;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
-import org.jsoup.Connection;
 
 import java.io.IOException;
 import java.net.CookieManager;
@@ -41,33 +46,30 @@ import java.net.CookiePolicy;
 public class LoginActivity extends Activity {
 
     /**
-     * A dummy authentication store containing known user names and passwords.
-     * TODO: remove after connecting to a real authentication system.
-     */
-    private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "foo@example.com:hello", "bar@example.com:world", "12345:67890"
-    };
-
-    /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
     private UserLoginTask mAuthTask = null;
 
-    // UI references.
-    private EditText mCampoMatricula;
-    private EditText mCampoSenha;
+    // UI references
+    private EditText mRegistrationNumber;
+    private EditText mPassword;
     private View mProgressView;
     private View mLoginFormView;
+
+    // Credentials
+    private SharedPreferences credentials;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        credentials = getSharedPreferences("credentials", 0);
+
         // Set up the login form.
-        mCampoMatricula = (EditText) findViewById(R.id.matricula);
-        mCampoSenha = (EditText) findViewById(R.id.senha);
-        mCampoSenha.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        mRegistrationNumber = (EditText) findViewById(R.id.registration_number);
+        mPassword = (EditText) findViewById(R.id.password);
+        mPassword.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
                 if (id == R.id.login || id == EditorInfo.IME_NULL) {
@@ -78,8 +80,8 @@ public class LoginActivity extends Activity {
             }
         });
 
-        Button mBotaoLogin = (Button) findViewById(R.id.botao_login);
-        mBotaoLogin.setOnClickListener(new OnClickListener() {
+        Button mLoginButton = (Button) findViewById(R.id.login_button);
+        mLoginButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
                 attemptLogin();
@@ -88,8 +90,29 @@ public class LoginActivity extends Activity {
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+
+        /* Submete o fomulário caso já se tenha uma matrícula e senha registradas */
+        if (credentials.getString("registration_number", "") != "") {
+            mRegistrationNumber.setText(credentials.getString("registration_number", ""));
+            mPassword.setText(credentials.getString("password", ""));
+            mLoginButton.callOnClick();
+        }
+
     }
 
+
+    public void animate(View view) {
+//        FrameLayout imageView = (FrameLayout) findViewById(R.id.login_image_frame);
+        Animation anim = AnimationUtils.loadAnimation(this, R.anim.login_animation);
+        anim.setFillAfter(true);
+
+        view.startAnimation(anim);
+
+//        ScaleAnimation scale = new ScaleAnimation((float)1.0, (float)1.0, (float)1.0, (float)0.3);
+//        scale.setFillAfter(true);
+//        scale.setDuration(800);
+//        imageView.startAnimation(scale);
+    }
 
     /**
      * Attempts to sign in or register the account specified by the login form.
@@ -97,37 +120,42 @@ public class LoginActivity extends Activity {
      * errors are presented and no actual login attempt is made.
      */
     public void attemptLogin() {
+
+        InputMethodManager imm = (InputMethodManager)getSystemService(
+                Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(mPassword.getWindowToken(), 0);
+
         if (mAuthTask != null) {
             return;
         }
 
         // Reset errors.
-        mCampoMatricula.setError(null);
-        mCampoSenha.setError(null);
+        mRegistrationNumber.setError(null);
+        mPassword.setError(null);
 
         // Store values at the time of the login attempt.
-        String matricula = mCampoMatricula.getText().toString();
-        String senha = mCampoSenha.getText().toString();
+        String registration_number = mRegistrationNumber.getText().toString();
+        String password = mPassword.getText().toString();
 
         boolean cancel = false;
         View focusView = null;
 
 
         // Valida a senha
-        if (!TextUtils.isEmpty(senha) && !validarSenha(senha)) {
-            mCampoSenha.setError(getString(R.string.erro_senha_invalida));
-            focusView = mCampoSenha;
+        if (!TextUtils.isEmpty(password) && !validatePassword(password)) {
+            mPassword.setError(getString(R.string.error_invalid_password));
+            focusView = mPassword;
             cancel = true;
         }
 
         // Valida o número de matrícula
-        if (TextUtils.isEmpty(matricula)) {
-            mCampoMatricula.setError(getString(R.string.erro_campo_obrigatorio));
-            focusView = mCampoMatricula;
+        if (TextUtils.isEmpty(registration_number)) {
+            mRegistrationNumber.setError(getString(R.string.error_mandatory_field));
+            focusView = mRegistrationNumber;
             cancel = true;
-        } else if (!validarMatricula(matricula)) {
-            mCampoMatricula.setError(getString(R.string.erro_matricula_invalida));
-            focusView = mCampoMatricula;
+        } else if (!validateRegistrationNumber(registration_number)) {
+            mRegistrationNumber.setError(getString(R.string.error_invalid_registration_number));
+            focusView = mRegistrationNumber;
             cancel = true;
         }
 
@@ -139,16 +167,16 @@ public class LoginActivity extends Activity {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthTask = new UserLoginTask(matricula, senha);
+            mAuthTask = new UserLoginTask(registration_number, password);
             mAuthTask.execute((Void) null);
         }
     }
-    private boolean validarMatricula(String matricula) {
-        return matricula.length() > 4;
+    private boolean validateRegistrationNumber(String number) {
+        return number.length() > 4;
     }
 
-    private boolean validarSenha(String senha) {
-        return senha.length() == 6;
+    private boolean validatePassword(String password) {
+        return password.length() == 6;
     }
 
     /**
@@ -193,14 +221,14 @@ public class LoginActivity extends Activity {
      */
     public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
 
-        private final String mMatricula;
-        private final String mSenha;
+        private final String mRegistrationNumber;
+        private final String mPassword;
 
-        private int idErro;
+        private int errorId;
 
-        UserLoginTask(String matricula, String senha) {
-            mMatricula = matricula;
-            mSenha = senha;
+        UserLoginTask(String registration_number, String password) {
+            mRegistrationNumber = registration_number;
+            mPassword = password;
         }
 
         @Override
@@ -219,8 +247,8 @@ public class LoginActivity extends Activity {
             String url = "http://internacional.com.br/checkincolorado/logar.php";
 
             RequestBody formBody = new FormEncodingBuilder()
-                    .add("matricula", mMatricula)
-                    .add("senha", mSenha)
+                    .add("matricula", mRegistrationNumber)
+                    .add("senha", mPassword)
                     .build();
 
             Request request = new Request.Builder()
@@ -235,17 +263,16 @@ public class LoginActivity extends Activity {
 
                 Log.d("html", html);
                 if (html.contains("Tente novamente")) {
-                    idErro = 1;
+                    errorId = 1;
                     return false;
                 } else if (html.contains("Tente outra vez")) {
-                    idErro = 2;
+                    errorId = 2;
                     return false;
                 } else {
                     // Persiste a informação de login e senha
-                    SharedPreferences settings = getSharedPreferences("credentials", 0);
-                    SharedPreferences.Editor editor = settings.edit();
-                    editor.putString("matricula", mMatricula);
-                    editor.putString("senha", mSenha);
+                    SharedPreferences.Editor editor = credentials.edit();
+                    editor.putString("registration_number", mRegistrationNumber);
+                    editor.putString("password", mPassword);
                     editor.commit();
 
                     // Pega os dados da partida
@@ -280,12 +307,12 @@ public class LoginActivity extends Activity {
             if (success) {
                 finish();
             } else {
-                if (idErro == 1) {
-                    mCampoMatricula.setError(getString(R.string.erro_matricula_invalida));
-                    mCampoMatricula.requestFocus();
-                } else if (idErro == 2) {
-                    mCampoSenha.setError(getString(R.string.erro_senha_incorreta));
-                    mCampoSenha.requestFocus();
+                if (errorId == 1) {
+                    LoginActivity.this.mRegistrationNumber.setError(getString(R.string.error_invalid_registration_number));
+                    LoginActivity.this.mRegistrationNumber.requestFocus();
+                } else if (errorId == 2) {
+                    LoginActivity.this.mPassword.setError(getString(R.string.error_incorrect_password));
+                    LoginActivity.this.mPassword.requestFocus();
                 } else {
                     Context context = getApplicationContext();
                     CharSequence text = "Um erro ocorreu, tente novamente mais tarde";
