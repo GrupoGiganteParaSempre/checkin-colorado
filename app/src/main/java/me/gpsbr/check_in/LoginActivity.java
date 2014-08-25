@@ -12,18 +12,16 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.view.animation.ScaleAnimation;
-import android.view.animation.TranslateAnimation;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -100,19 +98,36 @@ public class LoginActivity extends Activity {
 
     }
 
-
-    public void animate(View view) {
-//        FrameLayout imageView = (FrameLayout) findViewById(R.id.login_image_frame);
-        Animation anim = AnimationUtils.loadAnimation(this, R.anim.login_animation);
-        anim.setFillAfter(true);
-
-        view.startAnimation(anim);
-
-//        ScaleAnimation scale = new ScaleAnimation((float)1.0, (float)1.0, (float)1.0, (float)0.3);
-//        scale.setFillAfter(true);
-//        scale.setDuration(800);
-//        imageView.startAnimation(scale);
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
     }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+        if (id == R.id.action_logout) {
+            SharedPreferences.Editor editor = credentials.edit();
+            editor.putString("matricula", "");
+            editor.putString("senha", "");
+            editor.commit();
+        } else if (id == R.id.action_exit) {
+            finish();
+            System.exit(0);
+        } else if (id == R.id.action_about) {
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+
+
+
 
     /**
      * Attempts to sign in or register the account specified by the login form.

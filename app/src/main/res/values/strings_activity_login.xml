@@ -2,12 +2,12 @@
         <string name="title_activity_login">Login</string>
 
     <!-- Strings related to login -->
-    <string name="prompt_matricula">Matrícula</string>
-    <string name="prompt_senha">Senha</string>
-    <string name="acao_login">Login</string>
+    <string name="prompt_registration_number">Matrícula</string>
+    <string name="prompt_password">Senha</string>
+    <string name="action_login">Login</string>
 
-    <string name="erro_matricula_invalida">Número de matrícula inválido</string>
-    <string name="erro_senha_invalida">Senha inválida</string>
-    <string name="erro_senha_incorreta">Senha incorreta</string>
-    <string name="erro_campo_obrigatorio">Este campo é obrigatório</string>
+    <string name="error_invalid_registration_number">Número de matrícula inválido</string>
+    <string name="error_invalid_password">Senha inválida</string>
+    <string name="error_incorrect_password">Senha incorreta</string>
+    <string name="error_mandatory_field">Este campo é obrigatório</string>
 </resources>
