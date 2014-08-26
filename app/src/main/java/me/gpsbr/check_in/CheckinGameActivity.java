@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 
 
@@ -25,6 +26,10 @@ public class CheckinGameActivity extends Activity {
         ((TextView) findViewById(R.id.game_venue)).setText(game.getVenue());
         ((TextView) findViewById(R.id.game_date)).setText(game.getDate());
         ((TextView) findViewById(R.id.game_tournament)).setText(game.getTournament());
+
+        if (!game.userCanCheckIn()) {
+            findViewById(R.id.game_tournament).setVisibility(View.GONE);
+        }
     }
 
     @Override

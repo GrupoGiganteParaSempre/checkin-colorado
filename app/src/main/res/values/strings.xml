@@ -14,4 +14,6 @@
     <string name="title_activity_checkin_game">Checkin</string>
     <string name="hello_world">Hello world!</string>
 
+    <string name="checkin_unavailable">Sua modalidade de cartão não faz Check-In</string>
+
 </resources>

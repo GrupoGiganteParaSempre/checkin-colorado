@@ -96,9 +96,22 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="Small Text"
+            android:text="Venue"
             android:id="@+id/game_venue"
             android:layout_gravity="center_horizontal" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="@string/checkin_unavailable"
+            android:id="@+id/checkin_unavilable_message"
+            android:gravity="center"
+            android:layout_marginTop="50dp"
+            android:textStyle="bold"
+            android:textColor="@color/checkinwhite_dual_color"
+            android:autoText="false"
+            android:visibility="gone" />
     </LinearLayout>
 
 

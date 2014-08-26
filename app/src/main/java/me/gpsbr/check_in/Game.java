@@ -21,4 +21,8 @@ public class Game {
     public String getVenue() { return venue; }
     public String getDate() { return date; }
     public String getTournament() { return tournament; }
+
+    public boolean userCanCheckIn() {
+        return false;
+    }
 }
