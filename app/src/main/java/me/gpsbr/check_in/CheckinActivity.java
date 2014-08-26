@@ -18,6 +18,8 @@ import java.util.List;
 
 public class CheckinActivity extends Activity {
 
+    public final static String EXTRA_GAME_ID = "me.gpsbr.checkin.GAME_ID";
+
     private List<Game> games;
 
     @Override
@@ -39,11 +41,9 @@ public class CheckinActivity extends Activity {
             @Override
             public void onItemClick(AdapterView<?> parent, View viewClicked,
                                     int position, long id) {
-
-                Game clickedCar = games.get(position);
-                String message = "You clicked position " + position
-                        + " Which is car make " + clickedCar.getHome();
-                App.toaster(message);
+                Intent intent = new Intent(CheckinActivity.this, CheckinGameActivity.class);
+                intent.putExtra(EXTRA_GAME_ID, position);
+                startActivity(intent);
             }
         });
     }

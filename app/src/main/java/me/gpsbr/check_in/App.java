@@ -195,4 +195,11 @@ public class App extends Application {
     public static ArrayList<Game> getGameList() {
         return games;
     }
+
+    /**
+     * Returns the game
+     */
+    public static Game getGame(int gameId) {
+        return games.get(gameId);
+    }
 }
