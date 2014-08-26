@@ -5,11 +5,9 @@ import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,20 +17,9 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.squareup.okhttp.FormEncodingBuilder;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.Response;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-
-import java.io.IOException;
-import java.net.CookieManager;
-import java.net.CookiePolicy;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A login screen that offers login via matricula/senha.
@@ -52,9 +39,6 @@ public class LoginActivity extends Activity {
     private View mProgressView;
     private View mLoginFormView;
 
-    // Credentials
-    private SharedPreferences credentials;
-
     // Caching
     private int mShortAnimationDuration;
 
@@ -67,9 +51,6 @@ public class LoginActivity extends Activity {
         // Android inicialization
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
-        // Loading credentials from shared preferences
-        credentials = getSharedPreferences("credentials", 0);
 
         // Caching the system's default "short" animation time.
         mShortAnimationDuration = getResources().getInteger(
@@ -96,14 +77,12 @@ public class LoginActivity extends Activity {
         });
 
         // Autofill and submit the form in case we have already registered number and password
-        if (credentials.getString("registration_number", "") != "") {
-            Log.d("onCreate", "Credenciais encontradas");
-            mRegistrationNumber.setText(credentials.getString("registration_number", ""));
-            mPassword.setText(credentials.getString("password", ""));
+        if (App.isUserLoggedIn()) {
+            mRegistrationNumber.setText(App.data("registration_number"));
+            mPassword.setText(App.data("password"));
             mLoginButton.callOnClick();
         } else {
-            Log.d("onCreate", "Credenciais não encontradas");
-            toggleForm();
+            showForm();
         }
 
     }
@@ -122,22 +101,7 @@ public class LoginActivity extends Activity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        if (id == R.id.action_logout) {
-            // Clear login/password references
-            SharedPreferences.Editor editor = credentials.edit();
-            editor.putString("registration_number", "");
-            editor.putString("password", "");
-            editor.commit();
-
-            // Go back to the main activity (LoginActivity)
-            Intent intent = new Intent(LoginActivity.this, LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
-        } else if (id == R.id.action_exit) {
-            // Exit the application
-            finish();
-            System.exit(0);
-        } else if (id == R.id.action_about) {
+        if (id == R.id.action_about) {
             // Go to AboutActivity
             // Intent intent = new Intent(LoginActivity.this, AboutActivity.class);
             // startActivity(intent);
@@ -149,20 +113,20 @@ public class LoginActivity extends Activity {
     // - Other methods --------------------------------------------------------------------- //
     // ------------------------------------------------------------------------------------- //
 
-    private void toggleForm() {
+    private void showForm() {
+        toggleForm(mProgressView, mLoginFormView);
+    }
+    private void hideForm() {
+        toggleForm(mLoginFormView, mProgressView);
+    }
+    private void toggleForm(final View viewToHide, final View viewToShow) {
 
         // Set the content view to 0% opacity but visible, so that it is visible
         // (but fully transparent) during the animation.
 
-        final View viewToHide;
-        final View viewToShow;
-
-        if (mLoginFormView.getVisibility() == View.VISIBLE) {
-            viewToHide = mLoginFormView;
-            viewToShow = mProgressView;
-        } else {
-            viewToHide = mProgressView;
-            viewToShow = mLoginFormView;
+        // Simply return case the form is already (in)visible
+        if (mLoginFormView == viewToHide && mLoginFormView.getVisibility() == View.GONE) {
+            return;
         }
 
         viewToShow.setAlpha(0f);
@@ -171,32 +135,22 @@ public class LoginActivity extends Activity {
         // Animate the content view to 100% opacity, and clear any animation
         // listener set on the view.
         viewToShow.animate()
-            .alpha(1f)
-            .setDuration(mShortAnimationDuration)
-            .setListener(null);
+                .alpha(1f)
+                .setDuration(mShortAnimationDuration)
+                .setListener(null);
 
         // Animate the loading view to 0% opacity. After the animation ends,
         // set its visibility to GONE as an optimization step (it won't
         // participate in layout passes, etc.)
         viewToHide.animate()
-            .alpha(0f)
-            .setDuration(mShortAnimationDuration)
-            .setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    viewToHide.setVisibility(View.GONE);
-                }
-            });
-    }
-
-    /**
-     * Simply shows toast
-     */
-    private void showToast(CharSequence text) {
-        Context context = getApplicationContext();
-        int duration = Toast.LENGTH_SHORT;
-        Toast toast = Toast.makeText(context, text, duration);
-        toast.show();
+                .alpha(0f)
+                .setDuration(mShortAnimationDuration)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        viewToHide.setVisibility(View.GONE);
+                    }
+                });
     }
 
     /**
@@ -254,7 +208,7 @@ public class LoginActivity extends Activity {
         } else {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
-            toggleForm();
+            hideForm();
             mAuthTask = new UserLoginTask(registration_number, password);
             mAuthTask.execute((Void) null);
         }
@@ -262,7 +216,6 @@ public class LoginActivity extends Activity {
     private boolean validateRegistrationNumber(String number) {
         return number.length() > 4;
     }
-
     private boolean validatePassword(String password) {
         return password.length() == 6;
     }
@@ -287,82 +240,52 @@ public class LoginActivity extends Activity {
         protected Boolean doInBackground(Void... params) {
             /* @TODO tratar problemas de rede */
 
-            /* cookies! */
-            CookieManager cookieManager = new CookieManager();
-            cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
-            cookieManager.getCookieStore().removeAll();
+            Map<String, String> postValues = new HashMap<String, String>();
+            postValues.put("matricula", mRegistrationNumber);
+            postValues.put("senha", mPassword);
 
-            /* request */
-            OkHttpClient client = new OkHttpClient();
-            client.setCookieHandler(cookieManager);
+            String html = App.doRequest(getString(R.string.url_login), postValues);
 
-            Log.d("trying-credentials", mRegistrationNumber+" "+mPassword);
-
-            String url = "http://internacional.com.br/checkincolorado/logar.php";
-
-            RequestBody formBody = new FormEncodingBuilder()
-                    .add("matricula", mRegistrationNumber)
-                    .add("senha", mPassword)
-                    .build();
-
-            Request request = new Request.Builder()
-                    .url(url)
-                    .post(formBody)
-                    .build();
-
-            Response response = null;
-            try { /* problema na conexão de rede */
-                response = client.newCall(request).execute();
-                String html = response.body().string();
-
-                Log.d("html", html);
-                if (html.contains("Tente novamente")) {
-                    errorId = 1;
-                    return false;
-                } else if (html.contains("Tente outra vez")) {
-                    errorId = 2;
-                    return false;
-                } else {
-                    // Persiste a informação de login e senha
-                    SharedPreferences.Editor editor = credentials.edit();
-                    editor.putString("registration_number", mRegistrationNumber);
-                    editor.putString("password", mPassword);
-                    editor.commit();
-
-                    // Pega os dados da partida
-                    Document doc = Jsoup.parse(html);
-                    String jogo = doc.select("td.SOCIO_destaque_titulo > strong").first().text();
-                    String info = doc.select("span.SOCIO_texto_destaque_titulo2").first().text();
-
-                    editor.putString("jogo", jogo);
-                    editor.putString("info", info);
-                    editor.putBoolean("pode_fazer_checkin", html.matches("Sua modalidade de cartão não faz Check-In"));
-                    editor.commit();
-
-                    Log.d("jogo", jogo);
-                    Log.d("info", info);
-                    Log.d("pode fazer", String.valueOf(html.matches("Sua modalidade de cartão não faz Check-In")));
-
-                    // Log.d("html", doc.toString());
-                    // Elements nome = doc.select("span.SOCIO_texto_destaque_titulo");
-                    return true;
-                }
-            } catch (IOException e) {
+            if (html.equals("")) {
+                // Empty means some connection error, treat better later
                 return false;
-            }
+            } else if (html.contains("Tente novamente")) {
+                // Typital registration number error message
+                errorId = 1;
+                return false;
+            } else if (html.contains("Tente outra vez")) {
+                // Typital password error message
+                errorId = 2;
+                return false;
+            } else {
+                // No error message, login ok
+                // Persists login information
+                App.login(mRegistrationNumber, mPassword);
 
+                // Registering information for next game(s)
+                App.createGameListFromHTML(html);
+
+                // Checking if the user has checkin access
+                if (App.scrape(html, "checkin").equals("false")) {
+                    App.data("checkin_disabled", "1");
+                }
+
+                return true;
+            }
         }
 
         @Override
         protected void onPostExecute(final Boolean success) {
             mAuthTask = null;
-            toggleForm();
 
             if (success) {
-                showToast("Identificação aceita");
-                // Chama CheckinActivity
-//                finish();
+                App.toaster(getString(R.string.login_sucessfull));
+                Intent intent = new Intent(LoginActivity.this, CheckinActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME);
+                startActivity(intent);
+                finish();
             } else {
+                showForm();
                 if (errorId == 1) {
                     LoginActivity.this.mRegistrationNumber.setError(getString(R.string.error_invalid_registration_number));
                     LoginActivity.this.mRegistrationNumber.requestFocus();
@@ -370,7 +293,7 @@ public class LoginActivity extends Activity {
                     LoginActivity.this.mPassword.setError(getString(R.string.error_incorrect_password));
                     LoginActivity.this.mPassword.requestFocus();
                 } else {
-                    showToast("Um erro ocorreu, tente novamente mais tarde");
+                    App.toaster(getString(R.string.unidentifyed_error));
                 }
             }
         }
@@ -378,7 +301,7 @@ public class LoginActivity extends Activity {
         @Override
         protected void onCancelled() {
             mAuthTask = null;
-            toggleForm();
+            showForm();
         }
     }
 }
