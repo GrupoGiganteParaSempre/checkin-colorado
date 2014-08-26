@@ -14,8 +14,10 @@ import com.squareup.okhttp.Response;
 import java.io.IOException;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.jsoup.Jsoup;
@@ -30,6 +32,7 @@ public class App extends Application {
     protected static Context context;
     protected static SharedPreferences data;
     protected static OkHttpClient client;
+    protected static ArrayList<Game> games;
 
     @Override
     public void onCreate() {
@@ -44,6 +47,9 @@ public class App extends Application {
         cookieManager.getCookieStore().removeAll();
         client = new OkHttpClient();
         client.setCookieHandler(cookieManager);
+
+        // Initializing games list
+        games = new ArrayList<Game>();
     }
 
     /**
@@ -164,5 +170,22 @@ public class App extends Application {
         } else {
             return "";
         }
+    }
+
+    /**
+     * Creates a list of games scraping a page
+     */
+    public static void createGameListFromHTML(String html) {
+        // @TODO In the eventuality of more than one game, implement recursion here
+        String[] players = scrape(html, "game").split(" X ");
+        games.add(new Game(
+                players[0],
+                players[1],
+                scrape(html, "venue"),
+                scrape(html, "date"),
+                scrape(html, "tournment")));
+    }
+    public static ArrayList<Game> getGameList() {
+        return games;
     }
 }
