@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="me.gpsbr.check_in" >
 
+    <!-- To scrape internacional's website -->
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
@@ -21,6 +22,14 @@
         <activity
             android:name=".CheckinActivity"
             android:label="@string/title_activity_checkin" >
+	</activity>
+	<activity
+            android:name=".AboutActivity"
+            android:label="@string/title_activity_about"
+            android:parentActivityName=".LoginActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".LoginActivity" />
         </activity>
     </application>
 

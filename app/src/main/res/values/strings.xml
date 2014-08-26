@@ -2,19 +2,27 @@
 <resources>
 
     <string name="app_name">Check-in</string>
-    <string name="login_matricula">Matrícula</string>
-    <string name="login_senha">Senha</string>
 
     <!-- itens do menu -->
     <string name="action_logout">Deslogar</string>
     <string name="action_about">Sobre</string>
     <string name="action_exit">Sair</string>
+    <string name="action_settings">Settings</string>
+    
     <string name="title_activity_checkin">Checkin</string>
+    <string name="title_activity_about">Sobre</string>
+
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
-    <string name="unidentifyed_error">Um erro ocorreu, tente novamente mais tarde</string>
+    
+    <!-- login -->
     <string name="login_sucessfull">Identificação aceita</string>
+    <string name="login_matricula">Matrícula</string>
+    <string name="login_senha">Senha</string>
+    <string name="unidentifyed_error">Um erro ocorreu, tente novamente mais tarde</string>
     <string name="logout">Voce foi deslogado</string>
+
+
     <string name="url_login">http://internacional.com.br/checkincolorado/logar.php</string>
 
 </resources>
