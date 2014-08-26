@@ -31,6 +31,8 @@ import org.jsoup.nodes.Document;
 import java.io.IOException;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A login screen that offers login via matricula/senha.
@@ -88,7 +90,7 @@ public class LoginActivity extends Activity {
         });
 
         // Autofill and submit the form in case we have already registered number and password
-        if (App.data("registration_number") != "") {
+        if (App.isUserLoggedIn()) {
             mRegistrationNumber.setText(App.data("registration_number"));
             mPassword.setText(App.data("password"));
             mLoginButton.callOnClick();
@@ -251,59 +253,41 @@ public class LoginActivity extends Activity {
         protected Boolean doInBackground(Void... params) {
             /* @TODO tratar problemas de rede */
 
-            /* cookies! */
-            CookieManager cookieManager = new CookieManager();
-            cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
-            cookieManager.getCookieStore().removeAll();
+            Map<String, String> postValues = new HashMap<String, String>();
+            postValues.put("matricula", mRegistrationNumber);
+            postValues.put("senha", mPassword);
 
-            /* request */
-            OkHttpClient client = new OkHttpClient();
-            client.setCookieHandler(cookieManager);
+            String html = App.doRequest(getString(R.string.url_login), postValues);
 
-            String url = "http://internacional.com.br/checkincolorado/logar.php";
-
-            RequestBody formBody = new FormEncodingBuilder()
-                    .add("matricula", mRegistrationNumber)
-                    .add("senha", mPassword)
-                    .build();
-
-            Request request = new Request.Builder()
-                    .url(url)
-                    .post(formBody)
-                    .build();
-
-            Response response = null;
-            try { /* problema na conexão de rede */
-                response = client.newCall(request).execute();
-                String html = response.body().string();
-
-                if (html.contains("Tente novamente")) {
-                    errorId = 1;
-                    return false;
-                } else if (html.contains("Tente outra vez")) {
-                    errorId = 2;
-                    return false;
-                } else {
-                    // Persiste a informação de login e senha
-                    App.login(mRegistrationNumber, mPassword);
-
-                    // Pega os dados da partida
-                    Document doc = Jsoup.parse(html);
-                    String jogo = doc.select("td.SOCIO_destaque_titulo > strong").first().text();
-                    String info = doc.select("span.SOCIO_texto_destaque_titulo2").first().text();
-
-                    App.data("jogo", jogo);
-                    App.data("info", info);
-                    if (html.contains("Sua modalidade de cartão não faz Check-In")) {
-                        App.data("checkin_disabled", "1");
-                    }
-
-                    return true;
-                }
-            } catch (IOException e) {
+             if (html.equals("")) {
+                // Empty means some connection error, treat better later
                 return false;
-            }
+            } else if (html.contains("Tente novamente")) {
+                // Typital registration number error message
+                errorId = 1;
+                return false;
+            } else if (html.contains("Tente outra vez")) {
+                // Typital password error message
+                errorId = 2;
+                return false;
+            } else {
+                // No error message, login ok
+                // Persists login information
+                App.login(mRegistrationNumber, mPassword);
 
+                // Pega os dados da partida
+                Document doc = Jsoup.parse(html);
+                String jogo = doc.select("td.SOCIO_destaque_titulo > strong").first().text();
+                String info = doc.select("span.SOCIO_texto_destaque_titulo2").first().text();
+
+                App.data("jogo", jogo);
+                App.data("info", info);
+                if (html.contains("Sua modalidade de cartão não faz Check-In")) {
+                    App.data("checkin_disabled", "1");
+                }
+
+                return true;
+            }
         }
 
         @Override

@@ -6,6 +6,18 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.widget.Toast;
 
+import com.squareup.okhttp.FormEncodingBuilder;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
+
+import java.io.IOException;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 /**
  * Created by gust on 26/08/14.
  */
@@ -14,6 +26,7 @@ public class App extends Application {
     protected static Application app;
     protected static Context context;
     protected static SharedPreferences data;
+    protected static OkHttpClient client;
 
     @Override
     public void onCreate() {
@@ -21,10 +34,17 @@ public class App extends Application {
         app = this;
         context = app.getApplicationContext();
         data = context.getSharedPreferences("data", MODE_PRIVATE);
+
+        // Creating http client with cookie management
+        CookieManager cookieManager = new CookieManager();
+        cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
+        cookieManager.getCookieStore().removeAll();
+        client = new OkHttpClient();
+        client.setCookieHandler(cookieManager);
     }
 
     /**
-     * Simply shows toast
+     * Simply show toasts
      */
     public static void toaster(CharSequence text) {
         int duration = Toast.LENGTH_SHORT;
@@ -32,17 +52,28 @@ public class App extends Application {
         toast.show();
     }
 
-    // Getter
+    /**
+     * Getter and setter for a simple data storage
+     */
     public static String data(String key) {
         return data.getString(key, "");
     }
-    // Setter
     public static Boolean data(String key, String value) {
         SharedPreferences.Editor editor = data.edit();
         editor.putString(key, value);
         return editor.commit();
     }
 
+    /**
+     * Finds if a user is logged in or not
+     */
+    public static Boolean isUserLoggedIn() {
+        return !data("registration_number").equals("");
+    }
+
+    /**
+     * Logs out a user
+     */
     public static Boolean logout() {
         data("registration_number", "");
         data("password", "");
@@ -58,10 +89,44 @@ public class App extends Application {
         return true;
     }
 
+    /**
+     * Logs in a user
+     * Simply register their r-number and password in the storage
+     * @TODO Think about extracting the login logic from LoginActivity to here?
+     */
     public static Boolean login(String registration_number, String password) {
         data("registration_number", registration_number);
         data("password", password);
         return true;
     }
 
+    public static String doRequest(String url) {
+        Map<String, String> map = new HashMap<String, String>();
+        return doRequest(url, map);
+    }
+    public static String doRequest(String url, Map<String, String> postValues) {
+        // building request
+        Request.Builder builder = new Request.Builder().url(url);
+
+        if (!postValues.isEmpty()) {
+            FormEncodingBuilder formBody = new FormEncodingBuilder();
+
+            // in case of a post request (postValues not empty), include the post fields
+            Iterator<String> keySetIterator = postValues.keySet().iterator();
+            while (keySetIterator.hasNext()) {
+                String key = keySetIterator.next();
+                formBody.add(key, postValues.get(key));
+            }
+            builder.post(formBody.build());
+        }
+
+        Request request = builder.build();
+
+        try {
+            Response response = client.newCall(request).execute();
+            return response.body().string();
+        } catch (IOException e) {
+            return "";
+        }
+    }
 }
