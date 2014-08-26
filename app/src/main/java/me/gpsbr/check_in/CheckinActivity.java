@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 
 public class CheckinActivity extends Activity {
@@ -13,6 +14,18 @@ public class CheckinActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_checkin);
+
+        TextView tv = (TextView)findViewById(R.id.game_players);
+        tv.setText(App.data("info-game"));
+
+        tv = (TextView)findViewById(R.id.game_date);
+        tv.setText(App.data("info-date"));
+
+        tv = (TextView)findViewById(R.id.game_venue);
+        tv.setText(App.data("info-venue"));
+
+        tv = (TextView)findViewById(R.id.game_tournment);
+        tv.setText(App.data("info-tournment"));
     }
 
 

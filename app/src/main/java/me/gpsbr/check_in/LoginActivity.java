@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,18 +18,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.squareup.okhttp.FormEncodingBuilder;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.Response;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-
-import java.io.IOException;
-import java.net.CookieManager;
-import java.net.CookiePolicy;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -126,13 +113,13 @@ public class LoginActivity extends Activity {
     // - Other methods --------------------------------------------------------------------- //
     // ------------------------------------------------------------------------------------- //
 
-        private void showForm() {
-            toggleForm(mProgressView, mLoginFormView);
-        }
-        private void hideForm() {
-            toggleForm(mLoginFormView, mProgressView);
-        }
-        private void toggleForm(final View viewToHide, final View viewToShow) {
+    private void showForm() {
+        toggleForm(mProgressView, mLoginFormView);
+    }
+    private void hideForm() {
+        toggleForm(mLoginFormView, mProgressView);
+    }
+    private void toggleForm(final View viewToHide, final View viewToShow) {
 
         // Set the content view to 0% opacity but visible, so that it is visible
         // (but fully transparent) during the animation.
@@ -148,22 +135,22 @@ public class LoginActivity extends Activity {
         // Animate the content view to 100% opacity, and clear any animation
         // listener set on the view.
         viewToShow.animate()
-            .alpha(1f)
-            .setDuration(mShortAnimationDuration)
-            .setListener(null);
+                .alpha(1f)
+                .setDuration(mShortAnimationDuration)
+                .setListener(null);
 
         // Animate the loading view to 0% opacity. After the animation ends,
         // set its visibility to GONE as an optimization step (it won't
         // participate in layout passes, etc.)
         viewToHide.animate()
-            .alpha(0f)
-            .setDuration(mShortAnimationDuration)
-            .setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    viewToHide.setVisibility(View.GONE);
-                }
-            });
+                .alpha(0f)
+                .setDuration(mShortAnimationDuration)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        viewToHide.setVisibility(View.GONE);
+                    }
+                });
     }
 
     /**
@@ -259,7 +246,7 @@ public class LoginActivity extends Activity {
 
             String html = App.doRequest(getString(R.string.url_login), postValues);
 
-             if (html.equals("")) {
+            if (html.equals("")) {
                 // Empty means some connection error, treat better later
                 return false;
             } else if (html.contains("Tente novamente")) {
@@ -275,14 +262,12 @@ public class LoginActivity extends Activity {
                 // Persists login information
                 App.login(mRegistrationNumber, mPassword);
 
-                // Pega os dados da partida
-                Document doc = Jsoup.parse(html);
-                String jogo = doc.select("td.SOCIO_destaque_titulo > strong").first().text();
-                String info = doc.select("span.SOCIO_texto_destaque_titulo2").first().text();
-
-                App.data("jogo", jogo);
-                App.data("info", info);
-                if (html.contains("Sua modalidade de cartão não faz Check-In")) {
+                // Registering next-game information
+                App.data("info-game", App.scrape(html, "game"));
+                App.data("info-venue", App.scrape(html, "venue"));
+                App.data("info-tournment", App.scrape(html, "tournment"));
+                App.data("info-date", App.scrape(html, "date"));
+                if (App.scrape(html, "checkin").equals("false")) {
                     App.data("checkin_disabled", "1");
                 }
 

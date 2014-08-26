@@ -18,6 +18,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
 /**
  * Created by gust on 26/08/14.
  */
@@ -100,6 +103,9 @@ public class App extends Application {
         return true;
     }
 
+    /**
+     * HTTP Request handler
+     */
     public static String doRequest(String url) {
         Map<String, String> map = new HashMap<String, String>();
         return doRequest(url, map);
@@ -126,6 +132,36 @@ public class App extends Application {
             Response response = client.newCall(request).execute();
             return response.body().string();
         } catch (IOException e) {
+            return "";
+        }
+    }
+
+    /**
+     * HTML Scrapper
+     */
+    static String scrape_html_cache;
+    static Document scrape_dom;
+    public static String scrape(String html, String option) {
+        // Simple cache to not repeat jsoup parse for the same page
+        if (html != scrape_html_cache) {
+            scrape_dom = Jsoup.parse(html);
+            scrape_html_cache = html;
+        }
+
+        if (option.equals("game")) {
+            return scrape_dom.select("td.SOCIO_destaque_titulo > strong").first().text();
+        } else if (option.equals("venue")) {
+            String[] info = scrape_dom.select("span.SOCIO_texto_destaque_titulo2").first().text().split(" - ");
+            return info[2];
+        } else if (option.equals("tournment")) {
+            String[] info = scrape_dom.select("span.SOCIO_texto_destaque_titulo2").first().text().split(" - ");
+            return info[0];
+        } else if (option.equals("date")) {
+            String[] info = scrape_dom.select("span.SOCIO_texto_destaque_titulo2").first().text().split(" - ");
+            return info[1];
+        } else if (option.equals("checkin")) {
+            return String.valueOf(html.contains("Sua modalidade de car"));
+        } else {
             return "";
         }
     }
