@@ -4,10 +4,18 @@
     <!-- Strings related to login -->
     <string name="prompt_registration_number">Matrícula</string>
     <string name="prompt_password">Senha</string>
+
     <string name="action_login">Login</string>
 
     <string name="error_invalid_registration_number">Número de matrícula inválido</string>
     <string name="error_invalid_password">Senha inválida</string>
     <string name="error_incorrect_password">Senha incorreta</string>
     <string name="error_mandatory_field">Este campo é obrigatório</string>
+
+    <string name="login_sucessfull">Identificação aceita</string>
+    <string name="login_matricula">Matrícula</string>
+    <string name="login_senha">Senha</string>
+
+    <string name="unidentifyed_error">Um erro ocorreu, tente novamente mais tarde</string>
+    <string name="logout">Voce foi deslogado</string>
 </resources>

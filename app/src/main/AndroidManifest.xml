@@ -22,14 +22,10 @@
         <activity
             android:name=".CheckinActivity"
             android:label="@string/title_activity_checkin" >
-	</activity>
-	<activity
+        </activity>
+        <activity
             android:name=".AboutActivity"
-            android:label="@string/title_activity_about"
-            android:parentActivityName=".LoginActivity" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".LoginActivity" />
+            android:label="@string/title_activity_about">
         </activity>
     </application>
 
