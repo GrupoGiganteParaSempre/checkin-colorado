@@ -1,17 +1,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".CheckinActivity" >
-    <item android:id="@+id/action_about"
-        android:title="@string/action_about"
+    tools:context="me.gpsbr.check_in.CheckinActivity" >
+    <item android:id="@+id/action_settings"
+        android:title="@string/action_settings"
         android:orderInCategory="100"
         android:showAsAction="never" />
-    <item android:id="@+id/action_logout"
-        android:title="@string/action_logout"
-        android:orderInCategory="100"
-        android:showAsAction="never" />
-    <item android:id="@+id/action_exit"
-        android:title="@string/action_exit"
-        android:orderInCategory="100"
-        android:showAsAction="never" />
-
 </menu>
