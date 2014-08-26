@@ -3,7 +3,6 @@ package me.gpsbr.check_in;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
@@ -26,6 +25,24 @@ public class CheckinGameActivity extends Activity {
         ((TextView) findViewById(R.id.game_venue)).setText(game.getVenue());
         ((TextView) findViewById(R.id.game_date)).setText(game.getDate());
         ((TextView) findViewById(R.id.game_tournament)).setText(game.getTournament());
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        overridePendingTransition(R.anim.activity_slide_in_left, R.anim.activity_slide_out_right);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            // Respond to the action bar's Up/Home button
+            case android.R.id.home:
+                finish();
+                overridePendingTransition(R.anim.activity_slide_in_left, R.anim.activity_slide_out_right);
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
 }

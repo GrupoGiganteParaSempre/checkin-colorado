@@ -1,8 +1,6 @@
 package me.gpsbr.check_in;
 
 import android.app.Activity;
-import android.app.PendingIntent;
-import android.app.TaskStackBuilder;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -44,6 +42,7 @@ public class CheckinActivity extends Activity {
                 Intent intent = new Intent(CheckinActivity.this, CheckinGameActivity.class);
                 intent.putExtra(EXTRA_GAME_ID, position);
                 startActivity(intent);
+                overridePendingTransition(R.anim.activity_slide_in_right, R.anim.activity_slide_out_left);
             }
         });
     }
