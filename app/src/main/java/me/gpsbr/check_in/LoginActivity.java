@@ -139,8 +139,8 @@ public class LoginActivity extends Activity {
             System.exit(0);
         } else if (id == R.id.action_about) {
             // Go to AboutActivity
-            // Intent intent = new Intent(LoginActivity.this, AboutActivity.class);
-            // startActivity(intent);
+            Intent intent = new Intent(LoginActivity.this, AboutActivity.class);
+            startActivity(intent);
         }
         return super.onOptionsItemSelected(item);
     }
