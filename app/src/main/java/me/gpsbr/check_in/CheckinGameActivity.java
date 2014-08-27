@@ -38,7 +38,7 @@ public class CheckinGameActivity extends Activity {
             // @TODO Let user choose between cards, if he own more than one
             card = cards.get(0);
 
-
+            findViewById(R.id.checkin_available_form).setVisibility(View.VISIBLE);
         }
     }
 

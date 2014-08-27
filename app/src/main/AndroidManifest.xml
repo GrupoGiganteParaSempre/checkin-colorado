@@ -24,6 +24,7 @@
         android:theme="@style/CheckinWhite" >
         <activity
             android:name=".LoginActivity"
+            android:windowSoftInputMode="adjustResize"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

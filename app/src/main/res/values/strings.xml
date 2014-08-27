@@ -15,5 +15,7 @@
     <string name="hello_world">Hello world!</string>
 
     <string name="checkin_unavailable">Sua modalidade de cartão não faz Check-In</string>
+    <string name="yes">Não</string>
+    <string name="no">Sim</string>
 
 </resources>

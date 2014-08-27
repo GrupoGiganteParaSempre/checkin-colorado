@@ -190,7 +190,7 @@ public class App extends Application {
             for (Element cardElement : cardInputs) {
                 Card card = new Card(cardElement.val());
                 Elements sectorSelected = cardElement.parent()
-                        .select("select[name=setor] option:selected");
+                        .select("select[name=setor] option[selected]");
                 if (!sectorSelected.isEmpty()) {
                     card.checkin(getGameId(), sectorSelected.first().val());
                 }
