@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.widget.Toast;
 
+import com.parse.Parse;
+import com.parse.PushService;
 import com.squareup.okhttp.FormEncodingBuilder;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -49,6 +51,12 @@ public class App extends Application {
 
         // Initializing games list
         games = new ArrayList<Game>();
+
+        // Initializing Parse
+        Parse.initialize(this,
+                "0V4fqB7pR03LwgQ1CMdXyyECAoHl5yLpPndQw64V",
+                "vg6KxhzclZgLc3eFlR8c0MSSd6LZCeJDQxmxLsrU");
+        PushService.setDefaultPushCallback(this, LoginActivity.class);
     }
 
     /**
