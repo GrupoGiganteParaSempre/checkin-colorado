@@ -32,7 +32,7 @@ public class CheckinGameActivity extends Activity {
 
         List<Card> cards = App.getCards();
         if (cards.isEmpty()) {
-            findViewById(R.id.game_tournament).setVisibility(View.VISIBLE);
+            findViewById(R.id.checkin_unavilable_message).setVisibility(View.VISIBLE);
         } else {
             // Only using the first card for now
             // @TODO Let user choose between cards, if he own more than one
