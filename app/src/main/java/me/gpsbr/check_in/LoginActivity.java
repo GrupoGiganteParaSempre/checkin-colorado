@@ -267,13 +267,8 @@ public class LoginActivity extends Activity {
                 // Persists login information
                 App.login(mRegistrationNumber, mPassword);
 
-                // Registering information for next game(s)
-                App.createGameListFromHTML(html);
-
-                // Checking if the user has checkin access
-                if (App.scrape(html, "checkin").equals("false")) {
-                    App.data("checkin_disabled", "1");
-                }
+                // Building checkin information
+                App.buildCheckinFrom(html);
 
                 return true;
             }

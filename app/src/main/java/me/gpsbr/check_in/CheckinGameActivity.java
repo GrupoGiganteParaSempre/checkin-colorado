@@ -7,10 +7,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import java.util.List;
+
 
 public class CheckinGameActivity extends Activity {
 
     protected Game game;
+    protected Card card;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,8 +30,15 @@ public class CheckinGameActivity extends Activity {
         ((TextView) findViewById(R.id.game_date)).setText(game.getDate());
         ((TextView) findViewById(R.id.game_tournament)).setText(game.getTournament());
 
-        if (!game.userCanCheckIn()) {
-            findViewById(R.id.game_tournament).setVisibility(View.GONE);
+        List<Card> cards = App.getCards();
+        if (cards.isEmpty()) {
+            findViewById(R.id.game_tournament).setVisibility(View.VISIBLE);
+        } else {
+            // Only using the first card for now
+            // @TODO Let user choose between cards, if he own more than one
+            card = cards.get(0);
+
+
         }
     }
 

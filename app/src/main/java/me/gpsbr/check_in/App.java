@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.parse.Parse;
@@ -15,6 +16,8 @@ import com.squareup.okhttp.Response;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.net.CookieManager;
@@ -22,6 +25,7 @@ import java.net.CookiePolicy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,7 +37,8 @@ public class App extends Application {
     protected static Context context;
     protected static SharedPreferences data;
     protected static OkHttpClient client;
-    protected static ArrayList<Game> games;
+    protected static List<Game> games;
+    protected static List<Card> cards;
 
     @Override
     public void onCreate() {
@@ -48,9 +53,6 @@ public class App extends Application {
         cookieManager.getCookieStore().removeAll();
         client = new OkHttpClient();
         client.setCookieHandler(cookieManager);
-
-        // Initializing games list
-        games = new ArrayList<Game>();
 
         // Initializing Parse
         Parse.initialize(this,
@@ -149,52 +151,91 @@ public class App extends Application {
         }
     }
 
-    /**
-     * HTML Scrapper
-     */
-    static String scrape_html_cache;
-    static Document scrape_dom;
-    public static String scrape(String html, String option) {
-        // Simple cache to not repeat jsoup parse for the same page
-        if (html != scrape_html_cache) {
-            scrape_dom = Jsoup.parse(html);
-            scrape_html_cache = html;
+    protected static class Scrapper {
+        protected String html;
+        protected Document dom;
+
+        public Scrapper(String html) {
+            this.html = html;
+            this.dom = Jsoup.parse(html);
         }
 
-        if (option.equals("game")) {
-            return scrape_dom.select("td.SOCIO_destaque_titulo > strong").first().text();
-        } else if (option.equals("venue")) {
-            String[] info = scrape_dom.select("span.SOCIO_texto_destaque_titulo2").first().text().split(" - ");
+        public String[] getGame() {
+            String game = dom.select("td.SOCIO_destaque_titulo > strong").first().text();
+            return game.split(" X ");
+        }
+
+        public String getVenue() {
+            String[] info = dom.select("span.SOCIO_texto_destaque_titulo2").first().text().split(" - ");
             return info[2];
-        } else if (option.equals("tournment")) {
-            String[] info = scrape_dom.select("span.SOCIO_texto_destaque_titulo2").first().text().split(" - ");
+        }
+        public String getTournament() {
+            String[] info = dom.select("span.SOCIO_texto_destaque_titulo2").first().text().split(" - ");
             return info[0];
-        } else if (option.equals("date")) {
-            String[] info = scrape_dom.select("span.SOCIO_texto_destaque_titulo2").first().text().split(" - ");
+        }
+        public String getDate() {
+            String[] info = dom.select("span.SOCIO_texto_destaque_titulo2").first().text().split(" - ");
             return info[1];
-        } else if (option.equals("checkin")) {
-            return String.valueOf(html.contains("Sua modalidade de car"));
-        } else {
-            return "";
+        }
+        public Boolean checkinPossible() {
+            return !html.contains("Sua modalidade");
+        }
+        public String getGameId() {
+            if (!checkinPossible()) return "";
+            else return dom.select("input[name=id_jogo]").first().val();
+        }
+        public List<Card> getCards() {
+            Elements cardInputs = dom.select("input[name=cartao]");
+            List<Card> cards = new ArrayList<Card>();
+            for (Element cardElement : cardInputs) {
+                Card card = new Card(cardElement.val());
+                Elements sectorSelected = cardElement.parent()
+                        .select("select[name=setor] option:selected");
+                if (!sectorSelected.isEmpty()) {
+                    card.checkin(getGameId(), sectorSelected.first().val());
+                }
+                cards.add(card);
+            }
+            return cards;
+        }
+        public Map<String, String> getSectors() {
+            Map<String, String> sectors = new HashMap<String, String>();
+            if (!checkinPossible()) return sectors;
+
+            Elements options = dom.select("select[name=setor]").first().select("option");
+            for (Element option : options) {
+                sectors.put(option.val(), option.text());
+            }
+            return sectors;
         }
     }
 
     /**
      * Creates a list of games scraping a page
      */
-    public static void createGameListFromHTML(String html) {
-        // @TODO In the eventuality of more than one game, implement recursion here
-        String[] players = scrape(html, "game").split(" X ");
+    public static void buildCheckinFrom(String html) {
+        Scrapper scrapper = new Scrapper(html);
+
+        // Initializing games list
+        games = new ArrayList<Game>();
+
+        // @TODO No need for game lists, refator this for a single game entitity
+        String[] players = scrapper.getGame();
         games.add(new Game(
+                scrapper.getGameId(),
                 players[0],
                 players[1],
-                scrape(html, "venue"),
-                scrape(html, "date"),
-                scrape(html, "tournment")));
+                scrapper.getVenue(),
+                scrapper.getDate(),
+                scrapper.getTournament(),
+                scrapper.getSectors()));
+
+        cards = scrapper.getCards();
     }
-    public static ArrayList<Game> getGameList() {
+    public static List<Game> getGameList() {
         return games;
     }
+    public static List<Card> getCards() { return cards; }
 
     /**
      * Returns the game
