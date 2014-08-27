@@ -53,7 +53,9 @@ public class App extends Application {
         games = new ArrayList<Game>();
 
         // Initializing Parse
-        Parse.initialize(this, "0V4fqB7pR03LwgQ1CMdXyyECAoHl5yLpPndQw64V", "vg6KxhzclZgLc3eFlR8c0MSSd6LZCeJDQxmxLsrU");
+        Parse.initialize(this,
+                "0V4fqB7pR03LwgQ1CMdXyyECAoHl5yLpPndQw64V",
+                "vg6KxhzclZgLc3eFlR8c0MSSd6LZCeJDQxmxLsrU");
         PushService.setDefaultPushCallback(this, LoginActivity.class);
     }
 

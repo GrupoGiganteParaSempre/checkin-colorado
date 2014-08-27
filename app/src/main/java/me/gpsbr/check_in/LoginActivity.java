@@ -18,6 +18,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.parse.ParseAnalytics;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,6 +53,9 @@ public class LoginActivity extends Activity {
         // Android inicialization
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        // Parse analytics
+        ParseAnalytics.trackAppOpened(getIntent());
 
         // Caching the system's default "short" animation time.
         mShortAnimationDuration = getResources().getInteger(
