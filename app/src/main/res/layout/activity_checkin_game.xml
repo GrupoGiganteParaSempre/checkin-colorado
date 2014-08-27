@@ -166,6 +166,7 @@
             android:text="@string/confirm"
             android:layout_marginLeft="40dp"
             android:layout_marginRight="40dp"
+            android:onClick="submitCheckin"
             android:layout_alignParentBottom="true"
             android:id="@+id/button_confirmation" />
     </RelativeLayout>

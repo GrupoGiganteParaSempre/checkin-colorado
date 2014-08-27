@@ -5,13 +5,18 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import com.parse.ParseAnalytics;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class CheckinGameActivity extends Activity {
@@ -23,6 +28,9 @@ public class CheckinGameActivity extends Activity {
     protected Button mButtonSectorSelection;
     protected Switch mSwitchCheckin;
     protected View mViewCheckin;
+
+    protected Boolean checkedIn;
+    protected Game.Sector checkedSector;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,14 +64,16 @@ public class CheckinGameActivity extends Activity {
             mViewCheckin.setVisibility(View.VISIBLE);
 
             if (card.isCheckedIn(game)) {
+                checkedIn = true;
                 mSwitchCheckin.setChecked(true);
                 mButtonSectorSelection.setVisibility(View.VISIBLE);
-                Game.Sector checkinSector = card.getCheckinSector(game);
-                if (checkinSector != null) {
+                checkedSector = card.getCheckinSector(game);
+                if (checkedSector  != null) {
                     mButtonSectorSelection.setText(
-                            checkinSector.name + "\n" + checkinSector.gates);
+                            checkedSector.name + "\n" + checkedSector.gates);
                 }
             } else {
+                checkedIn = false;
                 mSwitchCheckin.setChecked(false);
                 mButtonSectorSelection.setVisibility(View.GONE);
             }
@@ -75,12 +85,30 @@ public class CheckinGameActivity extends Activity {
      */
     public void onSwitchClicked(View view) {
         boolean on = ((Switch) view).isChecked();
+        checkedIn = on;
 
         if (on) {
             mButtonSectorSelection.setVisibility(View.VISIBLE);
         } else {
             mButtonSectorSelection.setVisibility(View.GONE);
         }
+    }
+
+    /**
+     * Handles checkin/out submission
+     */
+    public void submitCheckin(View view) {
+        boolean in = ((Switch) findViewById(R.id.checkin_switch)).isChecked();
+
+        // Submit
+
+        // Some analytics
+        Map<String, String> checkinAnalytics = new HashMap<String, String>();
+        checkinAnalytics.put("mode", in ? "checkin" : "checkout");
+        if (in) checkinAnalytics.put("sector", checkedSector.name);
+
+        Log.d("Analytics", checkinAnalytics.toString());
+        ParseAnalytics.trackEvent("checkin", checkinAnalytics);
     }
 
     @Override
@@ -115,6 +143,7 @@ public class CheckinGameActivity extends Activity {
         builder.setItems(items, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int item) {
                 mButtonSectorSelection.setText(sectors.get(item).name + "\n" + sectors.get(item).gates);
+                checkedSector = sectors.get(item);
             }
         });
         AlertDialog alert = builder.create();
