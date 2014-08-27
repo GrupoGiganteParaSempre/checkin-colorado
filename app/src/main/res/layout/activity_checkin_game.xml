@@ -143,6 +143,7 @@
                         android:track="@drawable/checkinthemered_switch_track_holo_light"
                         android:textOff="@string/yes"
                         android:textOn="@string/no"
+                        android:onClick="onSwitchClicked"
                         android:id="@+id/checkin_switch" />
                 </FrameLayout>
             </LinearLayout>
@@ -150,6 +151,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
+                android:visibility="gone"
+                android:lines="2"
+                android:onClick="sectorSelectionClicked"
                 style="@style/ButtonCheckinThemeRed"
                 android:text="@string/choose_your_sector"
                 android:id="@+id/button_sector_choice"

@@ -5,26 +5,30 @@ import java.util.Map;
 
 public class Card {
     protected String id;
-    protected Map<String, String> checkin;
+    protected Map<String, Game.Sector> checkin;
 
     public Card(String cardId) {
         super();
 
         this.id = cardId;
-        this.checkin = new HashMap<String, String>();
+        this.checkin = new HashMap<String, Game.Sector>();
     }
 
-    public Boolean isCheckedIn(String gameId) {
-        return checkin.containsKey(gameId);
+    public Boolean isCheckedIn(Game game) {
+        return checkin.containsKey(game.getId());
     }
 
-    public String checkin(String gameId, String sectorId) {
-        return checkin.put(gameId, sectorId);
+    public Game.Sector checkin(Game game, Game.Sector sector) {
+        return checkin.put(game.getId(), sector);
     }
 
-    public String getCheckinSector(String gameId) {
-        if (isCheckedIn(gameId)) return checkin.get(gameId);
-        else return "";
+    public Game.Sector getCheckinSector(Game game) {
+        if (isCheckedIn(game)) return checkin.get(game.getId());
+        else return null;
+    }
+
+    public String getId() {
+        return id;
     }
 
 }

@@ -14,7 +14,7 @@ public class Game {
     private List<Sector> sectors = new ArrayList<Sector>();
 
     public Game (String id, String home, String away, String venue, String date,
-                 String tournament, Map<String, String> sectorList) {
+                 String tournament, List<Sector> sectorList) {
 
         super();
         this.id = id;
@@ -23,19 +23,17 @@ public class Game {
         this.venue = venue;
         this.date = date;
         this.tournament = tournament;
-
-        // Parse and include the venue sectors
-        for (Map.Entry<String, String> sector : sectorList.entrySet()) {
-            this.sectors.add(new Sector(sector.getKey(), sector.getValue()));
-        }
+        this.sectors = sectorList;
     }
 
-    public class Sector {
+    public static class Sector {
         public String id;
         public String name;
-        public Sector(String id, String name) {
+        public String gates;
+        public Sector(String id, String name, String gates) {
             this.id = id;
-            this.name = name;
+            this.name = App.Utils.capitalizeWords(name);
+            this.gates = App.Utils.capitalizeWords(gates);
         }
     }
 
@@ -46,6 +44,14 @@ public class Game {
     public String getDate() { return date; }
     public String getTournament() { return tournament; }
     public List<Sector> getSectors() { return sectors; }
+    public Sector findSector(String sectorId) {
+        for (Sector sector : sectors) {
+            if (sector.id.equals(sectorId))
+                return sector;
+        }
+
+        return null;
+    }
 
     public boolean userCanCheckIn() {
         return false;

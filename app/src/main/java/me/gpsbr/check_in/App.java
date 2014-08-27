@@ -145,7 +145,7 @@ public class App extends Application {
 
         try {
             Response response = client.newCall(request).execute();
-            return response.body().string();
+            return new String(response.body().bytes(), "ISO-8859-1");
         } catch (IOException e) {
             return "";
         }
@@ -189,22 +189,28 @@ public class App extends Application {
             List<Card> cards = new ArrayList<Card>();
             for (Element cardElement : cardInputs) {
                 Card card = new Card(cardElement.val());
-                Elements sectorSelected = cardElement.parent()
-                        .select("select[name=setor] option[selected]");
-                if (!sectorSelected.isEmpty()) {
-                    card.checkin(getGameId(), sectorSelected.first().val());
-                }
                 cards.add(card);
             }
             return cards;
         }
-        public Map<String, String> getSectors() {
-            Map<String, String> sectors = new HashMap<String, String>();
+        public Game.Sector getCheckin(Card card, Game game) {
+            Elements checkin = dom
+                    .select("input[name=id_jogo][value="+game.getId()+"]+input[name=cartao][value="+card.getId()+"]")
+                    .parents()
+                    .select("select[name=setor] option[selected][value!=1]");
+
+            if (checkin.isEmpty()) return null;
+            else return game.findSector(checkin.val());
+        }
+        public List<Game.Sector> getSectors() {
+            List<Game.Sector> sectors = new ArrayList<Game.Sector>();
             if (!checkinPossible()) return sectors;
 
-            Elements options = dom.select("select[name=setor]").first().select("option");
+            Elements options = dom.select("select[name=setor]").first().select("option[value!=1]");
+            String[] sectorInfo;
             for (Element option : options) {
-                sectors.put(option.val(), option.text());
+                sectorInfo = option.text().split(" - ");
+                sectors.add(new Game.Sector(option.val(), sectorInfo[0], sectorInfo[1]));
             }
             return sectors;
         }
@@ -216,21 +222,31 @@ public class App extends Application {
     public static void buildCheckinFrom(String html) {
         Scrapper scrapper = new Scrapper(html);
 
-        // Initializing games list
-        games = new ArrayList<Game>();
-
-        // @TODO No need for game lists, refator this for a single game entitity
+        // Initializing game
         String[] players = scrapper.getGame();
-        games.add(new Game(
+        Game game = new Game(
                 scrapper.getGameId(),
                 players[0],
                 players[1],
                 scrapper.getVenue(),
                 scrapper.getDate(),
                 scrapper.getTournament(),
-                scrapper.getSectors()));
+                scrapper.getSectors());
 
+        // @TODO No need for game lists, refator this for a single game entitity
+        games = new ArrayList<Game>();
+        games.add(game);
+
+        // Scrapping cards
         cards = scrapper.getCards();
+
+        // Scrapping checkins
+        for (Card c : cards) {
+            for (Game g : games) {
+                Game.Sector sector = scrapper.getCheckin(c, g);
+                if (sector != null) c.checkin(g, sector);
+            }
+        }
     }
     public static List<Game> getGameList() {
         return games;
@@ -242,5 +258,22 @@ public class App extends Application {
      */
     public static Game getGame(int gameId) {
         return games.get(gameId);
+    }
+
+
+    public static class Utils {
+        public static String capitalizeWords(String string) {
+            char[] chars = string.toLowerCase().toCharArray();
+            boolean found = false;
+            for (int i = 0; i < chars.length; i++) {
+                if (!found && Character.isLetter(chars[i])) {
+                    chars[i] = Character.toUpperCase(chars[i]);
+                    found = true;
+                } else if (Character.isWhitespace(chars[i]) || chars[i]=='.' || chars[i]=='\'') { // You can add other chars here
+                    found = false;
+                }
+            }
+            return String.valueOf(chars);
+        }
     }
 }
