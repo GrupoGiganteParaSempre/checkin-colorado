@@ -18,6 +18,11 @@ public class CheckinActivity extends Activity {
 
     public final static String EXTRA_GAME_ID = "me.gpsbr.checkin.GAME_ID";
 
+    // UI Refs
+    protected ListView mGameList;
+    protected TextView mCheckinClosedMessage;
+
+    // Data refs
     private List<Game> games;
 
     @Override
@@ -25,12 +30,22 @@ public class CheckinActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_checkin);
 
-        games = App.getGameList();
-        ArrayAdapter<Game> adapter = new GameListAdapter();
-        ListView list = (ListView)findViewById(R.id.game_list);
-        list.setAdapter(adapter);
+        // UI refs init
+        mGameList = (ListView) findViewById(R.id.game_list);
+        mCheckinClosedMessage = (TextView) findViewById(R.id.checkin_closed_message);
 
-        registerClickCallback();
+        games = App.getGameList();
+
+        if (games.isEmpty()) {
+            // Checkin is closed, hide game list and show message
+            mCheckinClosedMessage.setVisibility(View.VISIBLE);
+            mGameList.setVisibility(View.GONE);
+        } else {
+            // Mount gamelist
+            ArrayAdapter<Game> adapter = new GameListAdapter();
+            mGameList.setAdapter(adapter);
+            registerClickCallback();
+        }
     }
 
     private void registerClickCallback() {

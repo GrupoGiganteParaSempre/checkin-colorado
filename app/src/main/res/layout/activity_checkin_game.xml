@@ -184,16 +184,32 @@
             android:textColor="@color/checkinwhite_dual_color"
             android:visibility="gone" />
 
-        <TextView
-            android:layout_width="match_parent"
+        <LinearLayout
+            android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="@string/checkin_ended"
-            android:id="@+id/checkin_ended_message"
-            android:gravity="center"
-            android:textStyle="bold"
-            android:textColor="@color/checkinwhite_dual_color"
-            android:visibility="gone" />
+            android:weightSum="3"
+            android:visibility="gone"
+            android:orientation="vertical"
+            android:id="@+id/checkin_ended_container">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="@string/checkin_ended"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textColor="@color/checkinwhite_dual_color" />
+            <TextView
+                android:id="@+id/checkin_ended_message"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textColor="@color/checkinwhite_dual_color"/>
+        </LinearLayout>
 
     </LinearLayout>
 </LinearLayout>

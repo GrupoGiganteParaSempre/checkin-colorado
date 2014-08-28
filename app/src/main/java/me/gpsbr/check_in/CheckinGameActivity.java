@@ -26,10 +26,13 @@ public class CheckinGameActivity extends Activity {
 
     // UI references
     protected Button mButtonSectorSelection;
+    protected Button mButtonConfirm;
     protected Switch mSwitchCheckin;
     protected View mViewCheckin;
+    protected View mCheckinUnavailableMessage;
+    protected View mCheckinEndedContainer;
+    protected TextView mCheckinEndedMessage;
 
-    protected Boolean checkedIn;
     protected Game.Sector checkedSector;
 
     @Override
@@ -41,6 +44,10 @@ public class CheckinGameActivity extends Activity {
         mButtonSectorSelection = (Button)findViewById(R.id.button_sector_choice);
         mViewCheckin = findViewById(R.id.checkin_available_form);
         mSwitchCheckin = (Switch)findViewById(R.id.checkin_switch);
+        mCheckinUnavailableMessage = findViewById(R.id.checkin_unavailable_message);
+        mCheckinEndedContainer = findViewById(R.id.checkin_ended_container);
+        mButtonConfirm = (Button)findViewById(R.id.button_confirmation);
+        mCheckinEndedMessage = (TextView)findViewById(R.id.checkin_ended_message);
 
         // UI initialization
         Intent intent = getIntent();
@@ -54,28 +61,45 @@ public class CheckinGameActivity extends Activity {
         ((TextView) findViewById(R.id.game_tournament)).setText(game.getTournament());
 
         List<Card> cards = App.getCards();
+
         if (cards.isEmpty()) {
-            findViewById(R.id.checkin_unavilable_message).setVisibility(View.VISIBLE);
+            // User os probably CB or any other kind of association that does not need to check-in
+            mCheckinUnavailableMessage.setVisibility(View.VISIBLE);
         } else {
             // Only using the first card for now
             // @TODO Let user choose between cards, if he own more than one
             card = cards.get(0);
 
-            mViewCheckin.setVisibility(View.VISIBLE);
+            if (game.isCheckinOpen()) {
+                mViewCheckin.setVisibility(View.VISIBLE);
 
-            if (card.isCheckedIn(game)) {
-                checkedIn = true;
-                mSwitchCheckin.setChecked(true);
-                mButtonSectorSelection.setVisibility(View.VISIBLE);
-                checkedSector = card.getCheckinSector(game);
-                if (checkedSector  != null) {
-                    mButtonSectorSelection.setText(
-                            checkedSector.name + "\n" + checkedSector.gates);
+                if (card.isCheckedIn(game)) {
+                    mSwitchCheckin.setChecked(true);
+                    mButtonSectorSelection.setVisibility(View.VISIBLE);
+                    checkedSector = card.getCheckinSector(game);
+                    if (checkedSector != null) {
+                        mButtonSectorSelection.setText(
+                                checkedSector.name + "\n" + checkedSector.gates);
+                    }
+                } else {
+                    mSwitchCheckin.setChecked(false);
+                    mButtonSectorSelection.setVisibility(View.GONE);
                 }
             } else {
-                checkedIn = false;
-                mSwitchCheckin.setChecked(false);
-                mButtonSectorSelection.setVisibility(View.GONE);
+                mCheckinEndedContainer.setVisibility(View.VISIBLE);
+                String text;
+                if (card.isCheckedIn(game)) {
+                    Game.Sector sector = card.getCheckinSector(game);
+                    text = "Você confirmou que vai ao jogo\n\n"+sector.name+"\n"+sector.gates;
+                } else {
+                    text = "Você não fez checkin";
+                }
+                mCheckinEndedMessage.setText(text);
+
+                // In case checkin ended, just show the user status
+                // mSwitchCheckin.setEnabled(false);
+                // mButtonSectorSelection.setEnabled(false);
+                // mButtonConfirm.setVisibility(View.GONE);
             }
         }
     }
@@ -85,7 +109,6 @@ public class CheckinGameActivity extends Activity {
      */
     public void onSwitchClicked(View view) {
         boolean on = ((Switch) view).isChecked();
-        checkedIn = on;
 
         if (on) {
             mButtonSectorSelection.setVisibility(View.VISIBLE);
@@ -98,7 +121,7 @@ public class CheckinGameActivity extends Activity {
      * Handles checkin/out submission
      */
     public void submitCheckin(View view) {
-        boolean in = ((Switch) findViewById(R.id.checkin_switch)).isChecked();
+        boolean in = mSwitchCheckin.isChecked();
 
         // Submit
 

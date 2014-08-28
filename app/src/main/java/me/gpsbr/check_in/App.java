@@ -4,7 +4,6 @@ import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.parse.Parse;
@@ -37,8 +36,8 @@ public class App extends Application {
     protected static Context context;
     protected static SharedPreferences data;
     protected static OkHttpClient client;
-    protected static List<Game> games;
-    protected static List<Card> cards;
+    protected static List<Game> games = new ArrayList<Game>();
+    protected static List<Card> cards = new ArrayList<Card>();
 
     @Override
     public void onCreate() {
@@ -160,39 +159,64 @@ public class App extends Application {
             this.dom = Jsoup.parse(html);
         }
 
-        public String[] getGame() {
-            String game = dom.select("td.SOCIO_destaque_titulo > strong").first().text();
-            return game.split(" X ");
+        public List<Game> getGames() {
+            List<Game> games = new ArrayList<Game>();
+
+            Elements gameTitles = dom.select("td.SOCIO_destaque_titulo > strong");
+            if (!gameTitles.isEmpty()) for (Element gameTitle : gameTitles) {
+                games.add(getGame(gameTitle.parent()));
+            }
+            return games;
         }
 
-        public String getVenue() {
-            String[] info = dom.select("span.SOCIO_texto_destaque_titulo2").first().text().split(" - ");
-            return info[2];
+        protected Game getGame(Element gameContainer) {
+            // Get basic information about a game
+            String[] match = gameContainer.select("strong").first().text().split(" X ");
+            String home = match[0];
+            String away = match[1];
+
+            String[] info = gameContainer.select("span.SOCIO_texto_destaque_titulo2").first().text().split(" - ");
+            String tournament = info[0];
+            String date = info[1];
+            String venue = info[2];
+
+            // We have a gameid and sectors to fill
+            Element checkinForm = gameContainer.select("form").first();
+            String id = checkinForm.select("input[name=id_jogo]").first().val();
+
+            Game game = new Game(id, home, away, venue, date, tournament);
+
+            if (!gameContainer.html().contains("do site foi finalizado")) {
+                // Enables checkin for this game
+                game.enableCheckin();
+            }
+
+            // Get available sectors
+            Elements options = checkinForm.select("select[name=setor] option[value!=1]");
+            String[] sectorInfo;
+            for (Element option : options) {
+                sectorInfo = option.text().split(" - ");
+                if (game.findSector(option.val()) == null) {
+                    game.addSector(new Game.Sector(option.val(), sectorInfo[0], sectorInfo[1]));
+                }
+            }
+
+            return game;
         }
-        public String getTournament() {
-            String[] info = dom.select("span.SOCIO_texto_destaque_titulo2").first().text().split(" - ");
-            return info[0];
-        }
-        public String getDate() {
-            String[] info = dom.select("span.SOCIO_texto_destaque_titulo2").first().text().split(" - ");
-            return info[1];
-        }
-        public Boolean checkinPossible() {
-            return !html.contains("Sua modalidade");
-        }
-        public String getGameId() {
-            if (!checkinPossible()) return "";
-            else return dom.select("input[name=id_jogo]").first().val();
-        }
+
         public List<Card> getCards() {
-            Elements cardInputs = dom.select("input[name=cartao]");
+            Element container = dom.select("td.SOCIO_destaque_titulo > strong").first().parent();
+            Elements cardSpans = container.select(".blocodecartao .SOCIO_texto_destaque_titulo2");
+
             List<Card> cards = new ArrayList<Card>();
-            for (Element cardElement : cardInputs) {
-                Card card = new Card(cardElement.val());
+            for (Element cardElement : cardSpans) {
+                String[] cardInfo = cardElement.text().split("-");
+                Card card = new Card(cardInfo[0].split(" ")[1], cardInfo[1]);
                 cards.add(card);
             }
             return cards;
         }
+
         public Game.Sector getCheckin(Card card, Game game) {
             Elements checkin = dom
                     .select("input[name=id_jogo][value="+game.getId()+"]+input[name=cartao][value="+card.getId()+"]")
@@ -202,49 +226,26 @@ public class App extends Application {
             if (checkin.isEmpty()) return null;
             else return game.findSector(checkin.val());
         }
-        public List<Game.Sector> getSectors() {
-            List<Game.Sector> sectors = new ArrayList<Game.Sector>();
-            if (!checkinPossible()) return sectors;
 
-            Elements options = dom.select("select[name=setor]").first().select("option[value!=1]");
-            String[] sectorInfo;
-            for (Element option : options) {
-                sectorInfo = option.text().split(" - ");
-                sectors.add(new Game.Sector(option.val(), sectorInfo[0], sectorInfo[1]));
-            }
-            return sectors;
-        }
     }
-
     /**
      * Creates a list of games scraping a page
      */
     public static void buildCheckinFrom(String html) {
         Scrapper scrapper = new Scrapper(html);
 
-        // Initializing game
-        String[] players = scrapper.getGame();
-        Game game = new Game(
-                scrapper.getGameId(),
-                players[0],
-                players[1],
-                scrapper.getVenue(),
-                scrapper.getDate(),
-                scrapper.getTournament(),
-                scrapper.getSectors());
+        games = scrapper.getGames();
 
-        // @TODO No need for game lists, refator this for a single game entitity
-        games = new ArrayList<Game>();
-        games.add(game);
+        for (Game game : games) {
+            // Scrapping cards
+            cards = scrapper.getCards();
 
-        // Scrapping cards
-        cards = scrapper.getCards();
-
-        // Scrapping checkins
-        for (Card c : cards) {
-            for (Game g : games) {
-                Game.Sector sector = scrapper.getCheckin(c, g);
-                if (sector != null) c.checkin(g, sector);
+            // Scrapping checkins
+            for (Card c : cards) {
+                for (Game g : games) {
+                    Game.Sector sector = scrapper.getCheckin(c, g);
+                    if (sector != null) c.checkin(g, sector);
+                }
             }
         }
     }

@@ -10,12 +10,13 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_checkin">Checkin</string>
     <string name="title_activity_about">Sobre</string>
-    <string name="url_login">http://internacional.com.br/checkincolorado/logar.php</string>
     <string name="title_activity_checkin_game">Checkin</string>
     <string name="hello_world">Hello world!</string>
 
     <string name="checkin_unavailable">Sua modalidade de cartão não faz Check-In</string>
     <string name="yes">Não</string>
     <string name="no">Sim</string>
+    <string name="checkin_closed">Nenhuma partida disponível</string>
+    <string name="checkin_ended">O checkin para esta partida já foi finalizado</string>
 
 </resources>

@@ -12,9 +12,10 @@ public class Game {
     private String date;
     private String tournament;
     private List<Sector> sectors = new ArrayList<Sector>();
+    private Boolean checkinOpen = false;
 
     public Game (String id, String home, String away, String venue, String date,
-                 String tournament, List<Sector> sectorList) {
+                 String tournament) {
 
         super();
         this.id = id;
@@ -23,7 +24,6 @@ public class Game {
         this.venue = venue;
         this.date = date;
         this.tournament = tournament;
-        this.sectors = sectorList;
     }
 
     public static class Sector {
@@ -53,7 +53,13 @@ public class Game {
         return null;
     }
 
-    public boolean userCanCheckIn() {
-        return false;
+    public Boolean isCheckinOpen() {
+        return checkinOpen;
     }
+    public void enableCheckin() { enableCheckin(true); }
+    public void enableCheckin(Boolean status) { checkinOpen = status; }
+    public void addSector(Sector sector) {
+        if (sector != null) sectors.add(sector);
+    }
+
 }
