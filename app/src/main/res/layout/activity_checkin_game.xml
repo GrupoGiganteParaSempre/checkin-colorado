@@ -4,11 +4,13 @@
     android:layout_width="match_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical"
+    android:weightSum="3"
     tools:context="me.gpsbr.check_in.CheckinActivity">
 
     <FrameLayout
         android:layout_width="fill_parent"
-        android:layout_height="200dp">
+        android:layout_weight="1"
+        android:layout_height="0dp">
 
         <ImageView
             android:id="@+id/image_header"
@@ -72,7 +74,8 @@
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="2"
         android:padding="@dimen/activity_vertical_margin">
 
         <TextView
@@ -101,86 +104,96 @@
             android:id="@+id/game_venue"
             android:layout_gravity="center_horizontal" />
 
-    </LinearLayout>
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="fill_parent"
-        android:id="@+id/checkin_available_form"
-        android:visibility="gone"
-        android:layout_marginTop="20dp"
-        android:orientation="vertical">
-
-        <LinearLayout
-            android:orientation="vertical"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="fill_parent"
+            android:id="@+id/checkin_available_form"
+            android:visibility="gone"
+            android:layout_marginTop="20dp"
+            android:orientation="vertical">
 
             <LinearLayout
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp">
+                android:layout_height="wrap_content">
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:gravity="end"
-                    android:paddingRight="10dp"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="@string/going_question" />
+                    android:layout_marginBottom="20dp">
 
-                <FrameLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
-                    <Switch
-                        android:layout_width="wrap_content"
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="start"
-                        android:thumb="@drawable/checkinthemered_switch_inner_holo_light"
-                        android:track="@drawable/checkinthemered_switch_track_holo_light"
-                        android:textOff="@string/yes"
-                        android:textOn="@string/no"
-                        android:onClick="onSwitchClicked"
-                        android:id="@+id/checkin_switch" />
-                </FrameLayout>
+                        android:layout_gravity="center_vertical"
+                        android:gravity="end"
+                        android:paddingRight="10dp"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="@string/going_question" />
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+                        <Switch
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="start"
+                            android:thumb="@drawable/checkinthemered_switch_inner_holo_light"
+                            android:track="@drawable/checkinthemered_switch_track_holo_light"
+                            android:textOff="@string/yes"
+                            android:textOn="@string/no"
+                            android:onClick="onSwitchClicked"
+                            android:id="@+id/checkin_switch" />
+                    </FrameLayout>
+                </LinearLayout>
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:visibility="gone"
+                    android:lines="2"
+                    android:onClick="sectorSelectionClicked"
+                    style="@style/ButtonCheckinThemeRed"
+                    android:text="@string/choose_your_sector"
+                    android:id="@+id/button_sector_choice"
+                    android:layout_gravity="center_horizontal" />
             </LinearLayout>
             <Button
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:visibility="gone"
-                android:lines="2"
-                android:onClick="sectorSelectionClicked"
                 style="@style/ButtonCheckinThemeRed"
-                android:text="@string/choose_your_sector"
-                android:id="@+id/button_sector_choice"
-                android:layout_gravity="center_horizontal" />
-        </LinearLayout>
-        <Button
+                android:text="@string/confirm"
+                android:layout_marginLeft="40dp"
+                android:layout_marginRight="40dp"
+                android:onClick="submitCheckin"
+                android:layout_alignParentBottom="true"
+                android:id="@+id/button_confirmation" />
+        </RelativeLayout>
+
+        <TextView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            style="@style/ButtonCheckinThemeRed"
-            android:text="@string/confirm"
-            android:layout_marginLeft="40dp"
-            android:layout_marginRight="40dp"
-            android:onClick="submitCheckin"
-            android:layout_alignParentBottom="true"
-            android:id="@+id/button_confirmation" />
-    </RelativeLayout>
+            android:layout_height="fill_parent"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="@string/checkin_unavailable"
+            android:id="@+id/checkin_unavailable_message"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:textColor="@color/checkinwhite_dual_color"
+            android:visibility="gone" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="@string/checkin_unavailable"
-        android:id="@+id/checkin_unavilable_message"
-        android:gravity="center"
-        android:layout_marginTop="50dp"
-        android:textStyle="bold"
-        android:textColor="@color/checkinwhite_dual_color"
-        android:visibility="gone" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="fill_parent"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="@string/checkin_ended"
+            android:id="@+id/checkin_ended_message"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:textColor="@color/checkinwhite_dual_color"
+            android:visibility="gone" />
 
+    </LinearLayout>
 </LinearLayout>
