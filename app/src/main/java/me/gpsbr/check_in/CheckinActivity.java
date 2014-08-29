@@ -1,8 +1,6 @@
 package me.gpsbr.check_in;
 
 import android.app.Activity;
-import android.app.PendingIntent;
-import android.app.TaskStackBuilder;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -18,6 +16,13 @@ import java.util.List;
 
 public class CheckinActivity extends Activity {
 
+    public final static String EXTRA_GAME_ID = "me.gpsbr.checkin.GAME_ID";
+
+    // UI Refs
+    protected ListView mGameList;
+    protected TextView mCheckinClosedMessage;
+
+    // Data refs
     private List<Game> games;
 
     @Override
@@ -25,12 +30,22 @@ public class CheckinActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_checkin);
 
-        games = App.getGameList();
-        ArrayAdapter<Game> adapter = new GameListAdapter();
-        ListView list = (ListView)findViewById(R.id.game_list);
-        list.setAdapter(adapter);
+        // UI refs init
+        mGameList = (ListView) findViewById(R.id.game_list);
+        mCheckinClosedMessage = (TextView) findViewById(R.id.checkin_closed_message);
 
-        registerClickCallback();
+        games = App.getGameList();
+
+        if (games.isEmpty()) {
+            // Checkin is closed, hide game list and show message
+            mCheckinClosedMessage.setVisibility(View.VISIBLE);
+            mGameList.setVisibility(View.GONE);
+        } else {
+            // Mount gamelist
+            ArrayAdapter<Game> adapter = new GameListAdapter();
+            mGameList.setAdapter(adapter);
+            registerClickCallback();
+        }
     }
 
     private void registerClickCallback() {
@@ -39,11 +54,10 @@ public class CheckinActivity extends Activity {
             @Override
             public void onItemClick(AdapterView<?> parent, View viewClicked,
                                     int position, long id) {
-
-                Game clickedCar = games.get(position);
-                String message = "You clicked position " + position
-                        + " Which is car make " + clickedCar.getHome();
-                App.toaster(message);
+                Intent intent = new Intent(CheckinActivity.this, CheckinGameActivity.class);
+                intent.putExtra(EXTRA_GAME_ID, position);
+                startActivity(intent);
+                overridePendingTransition(R.anim.activity_slide_in_right, R.anim.activity_slide_out_left);
             }
         });
     }

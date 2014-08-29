@@ -15,6 +15,8 @@ import com.squareup.okhttp.Response;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.net.CookieManager;
@@ -22,6 +24,7 @@ import java.net.CookiePolicy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,7 +36,8 @@ public class App extends Application {
     protected static Context context;
     protected static SharedPreferences data;
     protected static OkHttpClient client;
-    protected static ArrayList<Game> games;
+    protected static List<Game> games = new ArrayList<Game>();
+    protected static List<Card> cards = new ArrayList<Card>();
 
     @Override
     public void onCreate() {
@@ -48,9 +52,6 @@ public class App extends Application {
         cookieManager.getCookieStore().removeAll();
         client = new OkHttpClient();
         client.setCookieHandler(cookieManager);
-
-        // Initializing games list
-        games = new ArrayList<Game>();
 
         // Initializing Parse
         Parse.initialize(this,
@@ -143,56 +144,137 @@ public class App extends Application {
 
         try {
             Response response = client.newCall(request).execute();
-            return response.body().string();
+            return new String(response.body().bytes(), "ISO-8859-1");
         } catch (IOException e) {
             return "";
         }
     }
 
-    /**
-     * HTML Scrapper
-     */
-    static String scrape_html_cache;
-    static Document scrape_dom;
-    public static String scrape(String html, String option) {
-        // Simple cache to not repeat jsoup parse for the same page
-        if (html != scrape_html_cache) {
-            scrape_dom = Jsoup.parse(html);
-            scrape_html_cache = html;
+    protected static class Scrapper {
+        protected String html;
+        protected Document dom;
+
+        public Scrapper(String html) {
+            this.html = html;
+            this.dom = Jsoup.parse(html);
         }
 
-        if (option.equals("game")) {
-            return scrape_dom.select("td.SOCIO_destaque_titulo > strong").first().text();
-        } else if (option.equals("venue")) {
-            String[] info = scrape_dom.select("span.SOCIO_texto_destaque_titulo2").first().text().split(" - ");
-            return info[2];
-        } else if (option.equals("tournment")) {
-            String[] info = scrape_dom.select("span.SOCIO_texto_destaque_titulo2").first().text().split(" - ");
-            return info[0];
-        } else if (option.equals("date")) {
-            String[] info = scrape_dom.select("span.SOCIO_texto_destaque_titulo2").first().text().split(" - ");
-            return info[1];
-        } else if (option.equals("checkin")) {
-            return String.valueOf(html.contains("Sua modalidade de car"));
-        } else {
-            return "";
+        public List<Game> getGames() {
+            List<Game> games = new ArrayList<Game>();
+
+            Elements gameTitles = dom.select("td.SOCIO_destaque_titulo > strong");
+            if (!gameTitles.isEmpty()) for (Element gameTitle : gameTitles) {
+                games.add(getGame(gameTitle.parent()));
+            }
+            return games;
         }
+
+        protected Game getGame(Element gameContainer) {
+            // Get basic information about a game
+            String[] match = gameContainer.select("strong").first().text().split(" X ");
+            String home = match[0];
+            String away = match[1];
+
+            String[] info = gameContainer.select("span.SOCIO_texto_destaque_titulo2").first().text().split(" - ");
+            String tournament = info[0];
+            String date = info[1];
+            String venue = info[2];
+
+            // We have a gameid and sectors to fill
+            Element checkinForm = gameContainer.select("form").first();
+            String id = checkinForm.select("input[name=id_jogo]").first().val();
+
+            Game game = new Game(id, home, away, venue, date, tournament);
+
+            if (!gameContainer.html().contains("do site foi finalizado")) {
+                // Enables checkin for this game
+                game.enableCheckin();
+            }
+
+            // Get available sectors
+            Elements options = checkinForm.select("select[name=setor] option[value!=1]");
+            String[] sectorInfo;
+            for (Element option : options) {
+                sectorInfo = option.text().split(" - ");
+                if (game.findSector(option.val()) == null) {
+                    game.addSector(new Game.Sector(option.val(), sectorInfo[0], sectorInfo[1]));
+                }
+            }
+
+            return game;
+        }
+
+        public List<Card> getCards() {
+            Element container = dom.select("td.SOCIO_destaque_titulo > strong").first().parent();
+            Elements cardSpans = container.select(".blocodecartao .SOCIO_texto_destaque_titulo2");
+
+            List<Card> cards = new ArrayList<Card>();
+            for (Element cardElement : cardSpans) {
+                String[] cardInfo = cardElement.text().split("-");
+                Card card = new Card(cardInfo[0].split(" ")[1], cardInfo[1]);
+                cards.add(card);
+            }
+            return cards;
+        }
+
+        public Game.Sector getCheckin(Card card, Game game) {
+            Elements checkin = dom
+                    .select("input[name=id_jogo][value="+game.getId()+"]+input[name=cartao][value="+card.getId()+"]")
+                    .parents()
+                    .select("select[name=setor] option[selected][value!=1]");
+
+            if (checkin.isEmpty()) return null;
+            else return game.findSector(checkin.val());
+        }
+
     }
-
     /**
      * Creates a list of games scraping a page
      */
-    public static void createGameListFromHTML(String html) {
-        // @TODO In the eventuality of more than one game, implement recursion here
-        String[] players = scrape(html, "game").split(" X ");
-        games.add(new Game(
-                players[0],
-                players[1],
-                scrape(html, "venue"),
-                scrape(html, "date"),
-                scrape(html, "tournment")));
+    public static void buildCheckinFrom(String html) {
+        Scrapper scrapper = new Scrapper(html);
+
+        games = scrapper.getGames();
+
+        for (Game game : games) {
+            // Scrapping cards
+            cards = scrapper.getCards();
+
+            // Scrapping checkins
+            for (Card c : cards) {
+                for (Game g : games) {
+                    Game.Sector sector = scrapper.getCheckin(c, g);
+                    if (sector != null) c.checkin(g, sector);
+                }
+            }
+        }
     }
-    public static ArrayList<Game> getGameList() {
+    public static List<Game> getGameList() {
         return games;
+    }
+    public static List<Card> getCards() { return cards; }
+
+    /**
+     * Returns the game
+     */
+    public static Game getGame(int gameId) {
+        return games.get(gameId);
+    }
+
+
+    public static class Utils {
+        public static String capitalizeWords(String string) {
+            char[] chars = string.toLowerCase().toCharArray();
+            boolean found = false;
+            for (int i = 0; i < chars.length; i++) {
+                if (!found && Character.isLetter(chars[i])) {
+                    chars[i] = Character.toUpperCase(chars[i]);
+                    found = true;
+                } else if (Character.isWhitespace(chars[i]) || chars[i]=='.' || chars[i]=='\'') { // You can add other chars here
+                    found = false;
+                }
+            }
+            return String.valueOf(chars);
+        }
     }
 }

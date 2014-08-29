@@ -1,0 +1,215 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:weightSum="3"
+    tools:context="me.gpsbr.check_in.CheckinActivity">
+
+    <FrameLayout
+        android:layout_width="fill_parent"
+        android:layout_weight="1"
+        android:layout_height="0dp">
+
+        <ImageView
+            android:id="@+id/image_header"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/seats"/>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/gradient"/>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:padding="@dimen/activity_vertical_margin">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_gravity="start|bottom"
+                android:gravity="bottom">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:text="Home"
+                    android:id="@+id/game_home"
+                    android:layout_gravity="start|bottom"
+                    android:textStyle="bold"
+                    android:textColor="@color/checkinwhite_color" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:text="Away"
+                    android:id="@+id/game_away"
+                    android:layout_gravity="start|bottom"
+                    android:textColor="@color/checkinwhite_color"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="vs"
+                android:id="@+id/textView"
+                android:layout_gravity="bottom|end"
+                android:textStyle="bold"
+                android:textColor="@color/checkinwhite_color" />
+        </FrameLayout>
+
+    </FrameLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2"
+        android:padding="@dimen/activity_vertical_margin">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Tournament"
+            android:id="@+id/game_tournament"
+            android:layout_gravity="center_horizontal" />
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="dd/mm/YYYY, HH:ii"
+            android:id="@+id/game_date"
+            android:textStyle="bold"
+            android:layout_gravity="center_horizontal" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Venue"
+            android:id="@+id/game_venue"
+            android:layout_gravity="center_horizontal" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="fill_parent"
+            android:id="@+id/checkin_available_form"
+            android:visibility="gone"
+            android:layout_marginTop="20dp"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:gravity="end"
+                        android:paddingRight="10dp"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="@string/going_question" />
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+                        <Switch
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="start"
+                            android:thumb="@drawable/checkinthemered_switch_inner_holo_light"
+                            android:track="@drawable/checkinthemered_switch_track_holo_light"
+                            android:textOff="@string/yes"
+                            android:textOn="@string/no"
+                            android:onClick="onSwitchClicked"
+                            android:id="@+id/checkin_switch" />
+                    </FrameLayout>
+                </LinearLayout>
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:visibility="gone"
+                    android:lines="2"
+                    android:onClick="sectorSelectionClicked"
+                    style="@style/ButtonCheckinThemeRed"
+                    android:text="@string/choose_your_sector"
+                    android:id="@+id/button_sector_choice"
+                    android:layout_gravity="center_horizontal" />
+            </LinearLayout>
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@style/ButtonCheckinThemeRed"
+                android:text="@string/confirm"
+                android:layout_marginLeft="40dp"
+                android:layout_marginRight="40dp"
+                android:onClick="submitCheckin"
+                android:layout_alignParentBottom="true"
+                android:id="@+id/button_confirmation" />
+        </RelativeLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="fill_parent"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="@string/checkin_unavailable"
+            android:id="@+id/checkin_unavailable_message"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:textColor="@color/checkinwhite_dual_color"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:weightSum="3"
+            android:visibility="gone"
+            android:orientation="vertical"
+            android:id="@+id/checkin_ended_container">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="@string/checkin_ended"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textColor="@color/checkinwhite_dual_color" />
+            <TextView
+                android:id="@+id/checkin_ended_message"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textColor="@color/checkinwhite_dual_color"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</LinearLayout>

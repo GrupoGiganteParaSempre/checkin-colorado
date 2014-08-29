@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="going_question">Vai ao jogo?</string>
+    <string name="yes_or_no">Sim/Não</string>
+    <string name="choose_your_sector">Escolha seu setor</string>
+    <string name="confirm">Confirmar</string>
+</resources>
