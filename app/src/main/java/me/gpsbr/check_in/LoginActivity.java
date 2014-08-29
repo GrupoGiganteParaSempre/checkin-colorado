@@ -249,8 +249,8 @@ public class LoginActivity extends Activity {
             postValues.put("matricula", mRegistrationNumber);
             postValues.put("senha", mPassword);
 
-            // String url = "http://internacional.com.br/checkincolorado/logar.php";
-            String url = "http://192.168.1.7/checkin-finalizado.html";
+            String url = "http://internacional.com.br/checkincolorado/logar.php";
+            // String url = "http://192.168.1.7/checkin-finalizado.html";
             String html = App.doRequest(url, postValues);
 
             if (html.equals("")) {
