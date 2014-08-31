@@ -1,7 +1,10 @@
 package me.gpsbr.check_in;
 
+import android.app.AlertDialog;
 import android.app.Application;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.widget.Toast;
@@ -304,6 +307,72 @@ public class App extends Application {
      */
     public static Game getGame(int gameId) {
         return games.get(gameId);
+    }
+
+
+    /**
+     * Classe proxy para dialogs do android
+     *
+     * @author  Gustavo Seganfredo
+     * @since   1.0
+     */
+    public static class Dialog {
+
+        protected static ProgressDialog progressDialog;
+        protected static AlertDialog alertDialog;
+
+        /**
+         * Mostra dialog de progresso com mensagem
+         *
+         * @param context Contexto da atividade pai
+         * @param message Mensagem a ser exibida
+         * @return        Objeto ProgressDialog
+         */
+        public static ProgressDialog showProgress(Context context, String message) {
+            progressDialog = ProgressDialog.show(context, "", message, true);
+            return progressDialog;
+        }
+
+        /**
+         * Desaparece com a dialog de progresso
+         */
+        public static void dismissProgress() {
+            progressDialog.dismiss();
+        }
+
+        /**
+         * Exibe uma mensagem de alerta
+         *
+         * @param context  Contexto da atividade pai
+         * @param message  Mensagem da janela
+         * @param okText   Texto do botão OK
+         * @param callback Callback a ser executada depois de clicar no botão ok
+         * @return         Objeto AlertDialog
+         */
+        public static AlertDialog showAlert(Context context, String message, String title,
+                                            String okText,
+                                            DialogInterface.OnClickListener callback) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setMessage(message).setCancelable(false);
+            if (title != null) builder.setTitle(title);
+            builder.setPositiveButton(okText, callback);
+            alertDialog = builder.create();
+            alertDialog.show();
+            return alertDialog;
+        }
+        public static AlertDialog showAlert(Context context, String message) {
+            return showAlert(context, message, null, "OK");
+        }
+        public static AlertDialog showAlert(Context context, String message, String title) {
+            return showAlert(context, message, title, "OK");
+        }
+        public static AlertDialog showAlert(Context context, String message, String title,
+                                            String okText) {
+            return showAlert(context, message, title, okText, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                }
+            });
+        }
     }
 
 
