@@ -28,7 +28,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by gust on 26/08/14.
+ * Classe da aplicação.
+ * Consiste em basicamente toda a lógica de login, checkin, checkuot e armazenamento de dados do
+ * aplicativo.
+ *
+ * @author   Gustavo Seganfredo <gustavosf@gmail.com>
+ * @since    1.0
  */
 public class App extends Application {
 
@@ -61,7 +66,9 @@ public class App extends Application {
     }
 
     /**
-     * Simply show toasts
+     * Proxy para exibir toasts no app
+     *
+     * @param text Texto a ser exibido no toast
      */
     public static void toaster(CharSequence text) {
         int duration = Toast.LENGTH_SHORT;
@@ -70,11 +77,22 @@ public class App extends Application {
     }
 
     /**
-     * Getter and setter for a simple data storage
+     * Proxy para a recuperação de dados básico do app, usando key-value
+     *
+     * @param key Chave do dado a ser recuperado
+     * @return    Dado
      */
     public static String data(String key) {
         return data.getString(key, "");
     }
+
+    /**
+     * Proxy para o armazenameto de dados básico do app, usando key-value
+     *
+     * @param key   Chave do dado a ser inserido / editado
+     * @param value Valor do dado
+     * @return      true se o dado foi inserido corretamente, false do contrário
+     */
     public static Boolean data(String key, String value) {
         SharedPreferences.Editor editor = data.edit();
         editor.putString(key, value);
@@ -82,16 +100,18 @@ public class App extends Application {
     }
 
     /**
-     * Finds if a user is logged in or not
+     * Verifica se usuário está logado ou não
+     *
+     * @return true se o usuário estiver logado, falso do contrário
      */
     public static Boolean isUserLoggedIn() {
         return !data("registration_number").equals("");
     }
 
     /**
-     * Logs out a user
+     * Desloga um usuário
      */
-    public static Boolean logout() {
+    public static void logout() {
         data("registration_number", "");
         data("password", "");
         data("checkin_disabled", "");
@@ -103,27 +123,39 @@ public class App extends Application {
         Intent intent = new Intent(context, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
-        return true;
     }
 
     /**
-     * Logs in a user
-     * Simply register their r-number and password in the storage
-     * @TODO Think about extracting the login logic from LoginActivity to here?
+     * Loga um usuário
+     * Simplesmente registra o número de matrícula e senha
+     *
+     * @param registration_number Número de matrícula
+     * @param password            Senha
      */
-    public static Boolean login(String registration_number, String password) {
+    public static void login(String registration_number, String password) {
+        // @TODO Mover toda a lógia de login do controller LoginActivity pra cá?
         data("registration_number", registration_number);
         data("password", password);
-        return true;
     }
 
     /**
-     * HTTP Request handler
+     * HTTP GET Request handler
+     *
+     * @param url URL a ser acessada
+     * @return    HTMl resultante da requisição, "" em caso de problemas
      */
     public static String doRequest(String url) {
         Map<String, String> map = new HashMap<String, String>();
         return doRequest(url, map);
     }
+
+    /**
+     * HTTP POST Request handler
+     *
+     * @param url        URL a ser acessada
+     * @param postValues Dados a serem postados
+     * @return           HTMl resultante da requisição, "" em caso de problemas
+     */
     public static String doRequest(String url, Map<String, String> postValues) {
         // building request
         Request.Builder builder = new Request.Builder().url(url);
@@ -228,8 +260,11 @@ public class App extends Application {
         }
 
     }
+
     /**
-     * Creates a list of games scraping a page
+     * Cria uma lista de jogos fazendo scrape da página de checkin
+     *
+     * @param html HTML da página de checkin
      */
     public static void buildCheckinFrom(String html) {
         Scrapper scrapper = new Scrapper(html);
@@ -249,9 +284,19 @@ public class App extends Application {
             }
         }
     }
+
+    /**
+     * Retorna a lista de jogos
+     * @return Lista de jogos
+     */
     public static List<Game> getGameList() {
         return games;
     }
+
+    /**
+     * Retorna a lista de cartões
+     * @return Lista de cartões
+     */
     public static List<Card> getCards() { return cards; }
 
     /**
@@ -262,7 +307,19 @@ public class App extends Application {
     }
 
 
+    /**
+     * Classe de utilidades variadas não-diretamente relacionadas ao app
+     *
+     * @author  Gustavo Seganfredo
+     * @since   1.0
+     */
     public static class Utils {
+
+        /**
+         * Retorna uma frase com todas as palavras capitalizadas
+         * @param string Frase a ser capitalizada
+         * @return       Frase capitalizada
+         */
         public static String capitalizeWords(String string) {
             char[] chars = string.toLowerCase().toCharArray();
             boolean found = false;

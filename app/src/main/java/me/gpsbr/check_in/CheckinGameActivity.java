@@ -18,8 +18,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
+/**
+ * Controller da atividade "CheckinGame"
+ * Esta atividade trata do checkin para um determinado jogo, exibindo os dados da partida, as
+ * opções de checkin/checkout, bem como trata do envio das opções para o servidor do clube.
+ * Ela possui suporte para tratar com mais de um cartão, mas está programada para exibir e
+ * tratar de checkin apenas para o primeiro da listagem
+ *
+ * @author   Gustavo Seganfredo <gustavosf@gmail.com>
+ * @since    1.0
+ *
+ * TODO:     Permitir gerenciamento de mais de um cartão para o checkin. O sistema do inter foi
+ *           programado para poder exibir mais de um cartão, mas não tivemos ainda experiência
+ *           com situações que caiam nesse caso.
+ */
 public class CheckinGameActivity extends Activity {
+
+    // Ids do Checkin / Checkout conforme formulário
+    private static final String FORM_CHECKIN_ID = "1";
+    private static final String FORM_CHECKOUT_ID = "2";
+    private static final String CHECKIN_URL = "http://internacional.com.br/checkincolorado/checkincolorado_res.php";
 
     protected Game game;
     protected Card card;
@@ -124,6 +142,18 @@ public class CheckinGameActivity extends Activity {
         boolean in = mSwitchCheckin.isChecked();
 
         // Submit
+        Map<String, String> postValues = new HashMap<String, String>();
+        postValues.put("jogo_id", game.getId());
+        postValues.put("cartao", card.getId());
+        postValues.put("opcao", in ? FORM_CHECKIN_ID : FORM_CHECKOUT_ID);
+        postValues.put("setor", in ? checkedSector.id : "1");
+
+        String html = App.doRequest(CHECKIN_URL, postValues);
+
+        if (in) card.checkin(game, checkedSector);
+        else card.checkout(game);
+
+
 
         // Some analytics
         Map<String, String> checkinAnalytics = new HashMap<String, String>();

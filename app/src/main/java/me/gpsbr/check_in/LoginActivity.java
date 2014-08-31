@@ -24,7 +24,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A login screen that offers login via matricula/senha.
+ * Controller da atividade "LoginActivity"
+ * Esta é a atividade principal da aplicação, chamada sempre ao iniciar, e trata do login do usuário
+ * junto ao sistema do clube. Caso já exista uma combinação matrícula-senha registrada no app, ele
+ * tenta logar o usuário automaticamente, caso contrário, exibe o formulário de login
+ *
+ * Uma vez logado, esta atividade chama a atividade CheckinActivity, repassando a execução do app
+ * para lá
+ *
+ * @author   Gustavo Seganfredo <gustavosf@gmail.com>
+ * @since    1.0
  */
 public class LoginActivity extends Activity {
 
@@ -249,8 +258,8 @@ public class LoginActivity extends Activity {
             postValues.put("matricula", mRegistrationNumber);
             postValues.put("senha", mPassword);
 
-            String url = "http://internacional.com.br/checkincolorado/logar.php";
-            // String url = "http://192.168.1.7/checkin-finalizado.html";
+            // String url = "http://internacional.com.br/checkincolorado/logar.php";
+            String url = "http://192.168.1.7/checkin.html";
             String html = App.doRequest(url, postValues);
 
             if (html.equals("")) {

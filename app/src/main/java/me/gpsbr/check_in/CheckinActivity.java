@@ -14,6 +14,15 @@ import android.widget.TextView;
 
 import java.util.List;
 
+/**
+ * Controller da atividade "Checkin"
+ * Esta atividade é mostrada logo após o login, tem como objetivo mostrar uma lista de partidas
+ * cujo checkin está aberto. Normalmente, o clube abre apenas uma partida por vês mas o controller
+ * prevê a possibilidade da abertura de checkin para mais de uma partida.
+ *
+ * @author   Gustavo Seganfredo <gustavosf@gmail.com>
+ * @since    1.0
+ */
 public class CheckinActivity extends Activity {
 
     public final static String EXTRA_GAME_ID = "me.gpsbr.checkin.GAME_ID";
