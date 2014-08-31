@@ -2,20 +2,26 @@ package me.gpsbr.check_in;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
 import android.os.StrictMode;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import com.parse.ParseAnalytics;
-
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -163,6 +169,42 @@ public class CheckinGameActivity extends Activity {
         App.Dialog.showProgress(this, "Efetuando " + (in ? "Checkin" : "Checkout") + "...");
         String html = App.doRequest(CHECKIN_URL, postValues);
         App.Dialog.dismissProgress();
+
+        // Imprime o comprovante
+        final WebView w = new WebView(this);
+        w.setHorizontalScrollbarOverlay(false);
+        setContentView(w);
+        w.loadUrl("http://192.168.1.7/checkin-comprovante.html");
+
+        w.setWebViewClient(new WebViewClient() {
+            public void onPageFinished(WebView view, String url) {
+                Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    public void run() {
+                        float scale = w.getScale();
+                        int webViewHeight = (int) (w.getContentHeight() * scale);
+                        Bitmap b = Bitmap.createBitmap(730, webViewHeight, Bitmap.Config.ARGB_8888);
+                        Canvas c = new Canvas(b);
+                        w.draw(c);
+
+                        // Get the directory for the user's public pictures directory.
+                        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "Check-in/checkin.png");
+                        file.mkdirs();
+                        if (file.exists()) file.delete();
+                        try {
+                            FileOutputStream out = new FileOutputStream(file);
+                            b.compress(Bitmap.CompressFormat.PNG, 90, out);
+                            out.flush();
+                            out.close();
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        Log.d("webview", "salvo...");
+                    }
+                }, 500);
+            }
+        });
 
         String message = "A comunicação de que você "+(in ? "VAI" : "NÃO VAI")+" a esta partida foi enviada";
         App.Dialog.showAlert(this, message, (in ? "Checkin" : "Checkout") + " efetuado");
