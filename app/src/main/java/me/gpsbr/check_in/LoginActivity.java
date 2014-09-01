@@ -5,7 +5,6 @@ import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
@@ -24,16 +23,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A login screen that offers login via matricula/senha.
+ * Controller da atividade "LoginActivity"
+ * Esta é a atividade principal da aplicação, chamada sempre ao iniciar, e trata do login do usuário
+ * junto ao sistema do clube. Caso já exista uma combinação matrícula-senha registrada no app, ele
+ * tenta logar o usuário automaticamente, caso contrário, exibe o formulário de login
+ *
+ * Uma vez logado, esta atividade chama a atividade CheckinActivity, repassando a execução do app
+ * para lá
+ *
+ * @author   Gustavo Seganfredo <gustavosf@gmail.com>
+ * @since    1.0
  */
 public class LoginActivity extends Activity {
-
-    // ------------------------------------------------------------------------------------- //
-    // - Properties ------------------------------------------------------------------------ //
-    // ------------------------------------------------------------------------------------- //
-
-    // Keep track of the login task to ensure we can cancel it if requested.
-    private UserLoginTask mAuthTask = null;
 
     // UI references
     private EditText mRegistrationNumber;
@@ -45,31 +46,29 @@ public class LoginActivity extends Activity {
     private int mShortAnimationDuration;
 
     // ------------------------------------------------------------------------------------- //
-    // - Basic methods --------------------------------------------------------------------- //
+    // - Métodos da Atividade -------------------------------------------------------------- //
     // ------------------------------------------------------------------------------------- //
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Android inicialization
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
         // Parse analytics
         ParseAnalytics.trackAppOpened(getIntent());
 
-        // Caching the system's default "short" animation time.
+        // Cache do tempo curto de animação
         mShortAnimationDuration = getResources().getInteger(
                 android.R.integer.config_shortAnimTime);
 
-
-        // Set up the login form references
+        // Set up das referências de UI
         mRegistrationNumber = (EditText) findViewById(R.id.registration_number);
         mPassword = (EditText) findViewById(R.id.password);
         mProgressView = findViewById(R.id.login_progress);
         mLoginFormView = findViewById(R.id.login_form);
         Button mLoginButton = (Button) findViewById(R.id.login_button);
 
-        // Set up the login form actions
+        // Set up das ações do formulário de login
         mPassword.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
@@ -81,7 +80,7 @@ public class LoginActivity extends Activity {
             }
         });
 
-        // Autofill and submit the form in case we have already registered number and password
+        // Preenche e submete o formulário no caso de já termos login/senha registrados
         if (App.isUserLoggedIn()) {
             mRegistrationNumber.setText(App.data("registration_number"));
             mPassword.setText(App.data("password"));
@@ -94,20 +93,15 @@ public class LoginActivity extends Activity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.login, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
         if (id == R.id.action_about) {
-            // Go to AboutActivity
             Intent intent = new Intent(LoginActivity.this, AboutActivity.class);
             startActivity(intent);
         }
@@ -115,15 +109,34 @@ public class LoginActivity extends Activity {
     }
 
     // ------------------------------------------------------------------------------------- //
-    // - Other methods --------------------------------------------------------------------- //
+    // - Outros Métodos -------------------------------------------------------------------- //
     // ------------------------------------------------------------------------------------- //
 
+    /**
+     * Mostra o formulário de login
+     *
+     * @see LoginActivity#toggleForm
+     */
     private void showForm() {
         toggleForm(mProgressView, mLoginFormView);
     }
+
+    /**
+     * Esconde o formulário de login
+     *
+     * @see LoginActivity#toggleForm
+     */
     private void hideForm() {
         toggleForm(mLoginFormView, mProgressView);
     }
+
+    /**
+     * Mostra um elemento e esconde outro
+     *
+     * @param viewToHide Elemento a ser escondido
+     * @param viewToShow Elemento a ser exibido
+     * @see LoginActivity#toggleForm
+     */
     private void toggleForm(final View viewToHide, final View viewToShow) {
 
         // Set the content view to 0% opacity but visible, so that it is visible
@@ -159,43 +172,37 @@ public class LoginActivity extends Activity {
     }
 
     /**
-     * Attempts to sign in or register the account specified by the login form.
-     * If there are form errors (invalid email, missing fields, etc.), the
-     * errors are presented and no actual login attempt is made.
+     * Tenta efetuar o login de um usuário, com base nos dados do formulário
      */
     public void attemptLogin(View view) {
         attemptLogin();
     }
     public void attemptLogin() {
 
-        // Hide keyboard
-        InputMethodManager imm = (InputMethodManager)getSystemService(
+        // Esconde o teclado
+        InputMethodManager imm = (InputMethodManager) getSystemService(
                 Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(mPassword.getWindowToken(), 0);
 
-        if (mAuthTask != null) {
-            return;
-        }
-
-        // Reset errors.
+        // Reseta os erros
         mRegistrationNumber.setError(null);
         mPassword.setError(null);
 
-        // Store values at the time of the login attempt.
-        String registration_number = mRegistrationNumber.getText().toString();
-        String password = mPassword.getText().toString();
+        // Guarda os dados a serem submetidos no login
+        final String registration_number = mRegistrationNumber.getText().toString();
+        final String password = mPassword.getText().toString();
 
         boolean cancel = false;
         View focusView = null;
 
-        // Validates password
+        // Valida a senha
         if (!TextUtils.isEmpty(password) && !validatePassword(password)) {
             mPassword.setError(getString(R.string.error_invalid_password));
             focusView = mPassword;
             cancel = true;
         }
 
-        // Validates registration number
+        // Valida o número de matrícula
         if (TextUtils.isEmpty(registration_number)) {
             mRegistrationNumber.setError(getString(R.string.error_mandatory_field));
             focusView = mRegistrationNumber;
@@ -207,106 +214,72 @@ public class LoginActivity extends Activity {
         }
 
         if (cancel) {
-            // There was an error; don't attempt login and focus the first
-            // form field with an error.
+            // Algum erro aconteceu, não tenta fazer login e mostra mensagem
             focusView.requestFocus();
         } else {
-            // Show a progress spinner, and kick off a background task to
-            // perform the user login attempt.
+            // Partiu login, mostra o loading e faz o login no background
             hideForm();
-            mAuthTask = new UserLoginTask(registration_number, password);
-            mAuthTask.execute((Void) null);
+
+            // Monta o post
+            Map<String, String> postValues = new HashMap<String, String>();
+            postValues.put("matricula", registration_number);
+            postValues.put("senha", password);
+            String url = getString(R.string.url_login);
+
+            HTTPClient httpClient = new HTTPClient(url, postValues, new HTTPClientCallbackInterface() {
+                @Override
+                public void success(String html) {
+                    if (html.equals("")) {
+                        // Vazio significa um erro de conexão
+                        showForm();
+                        App.toaster(getString(R.string.unidentifyed_error));
+                    } else if (html.contains("Tente novamente")) {
+                        // Mensagem típica de erro de matrícula inválida
+                        showForm();
+                        mRegistrationNumber.setError(getString(R.string.error_invalid_registration_number));
+                        mRegistrationNumber.requestFocus();
+                    } else if (html.contains("Tente outra vez")) {
+                        // Mensagem típica de erro de senha
+                        showForm();
+                        mPassword.setError(getString(R.string.error_incorrect_password));
+                        mPassword.requestFocus();
+                    } else {
+                        // Sem erro, login efetuado
+                        App.toaster(getString(R.string.login_sucessfull));
+
+                        // Persiste as credenciais no aplicativo
+                        App.login(registration_number, password);
+
+                        // Extrai os dados para a próxima atividade
+                        App.buildCheckinFrom(html);
+
+                        // Chama a próxima atividade e mata a atividade de login
+                        Intent intent = new Intent(LoginActivity.this, CheckinActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME);
+                        startActivity(intent);
+                        finish();
+                    }
+                }
+            });
+            httpClient.execute((Void) null);
         }
-    }
-    private boolean validateRegistrationNumber(String number) {
-        return number.length() > 4;
-    }
-    private boolean validatePassword(String password) {
-        return password.length() == 6;
     }
 
     /**
-     * Represents an asynchronous login/registration task used to authenticate
-     * the user.
+     * Verifica se o número de matrícula é válido
+     * @param number Número de matrícula
+     * @return       true se o número de matrícula for válido, false do contrário
      */
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
+    private boolean validateRegistrationNumber(String number) {
+        return number.length() > 4;
+    }
 
-        private final String mRegistrationNumber;
-        private final String mPassword;
-
-        private int errorId;
-
-        UserLoginTask(String registration_number, String password) {
-            mRegistrationNumber = registration_number;
-            mPassword = password;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            /* @TODO tratar problemas de rede */
-
-            Map<String, String> postValues = new HashMap<String, String>();
-            postValues.put("matricula", mRegistrationNumber);
-            postValues.put("senha", mPassword);
-
-            String url = "http://internacional.com.br/checkincolorado/logar.php";
-            // String url = "http://192.168.1.7/checkin-finalizado.html";
-            String html = App.doRequest(url, postValues);
-
-            if (html.equals("")) {
-                // Empty means some connection error, treat better later
-                return false;
-            } else if (html.contains("Tente novamente")) {
-                // Typital registration number error message
-                errorId = 1;
-                return false;
-            } else if (html.contains("Tente outra vez")) {
-                // Typital password error message
-                errorId = 2;
-                return false;
-            } else {
-                // No error message, login ok
-                // Persists login information
-                App.login(mRegistrationNumber, mPassword);
-
-                // Building checkin information
-                App.buildCheckinFrom(html);
-
-                return true;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            mAuthTask = null;
-
-            if (success) {
-                App.toaster(getString(R.string.login_sucessfull));
-                Intent intent = new Intent(LoginActivity.this, CheckinActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME);
-                startActivity(intent);
-                finish();
-            } else {
-                showForm();
-                if (errorId == 1) {
-                    LoginActivity.this.mRegistrationNumber.setError(getString(R.string.error_invalid_registration_number));
-                    LoginActivity.this.mRegistrationNumber.requestFocus();
-                } else if (errorId == 2) {
-                    LoginActivity.this.mPassword.setError(getString(R.string.error_incorrect_password));
-                    LoginActivity.this.mPassword.requestFocus();
-                } else {
-                    App.toaster(getString(R.string.unidentifyed_error));
-                }
-            }
-        }
-
-        @Override
-        protected void onCancelled() {
-            mAuthTask = null;
-            showForm();
-        }
+    /**
+     * Verifica se a senha é válida
+     * @param password Senha
+     * @return         true se a senha for válida, false do contrário
+     */
+    private boolean validatePassword(String password) {
+        return password.length() == 6;
     }
 }
-
-
-

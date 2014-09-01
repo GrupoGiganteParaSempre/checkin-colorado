@@ -5,7 +5,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
+import android.os.StrictMode;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -18,8 +18,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
+/**
+ * Controller da atividade "CheckinGame"
+ * Esta atividade trata do checkin para um determinado jogo, exibindo os dados da partida, as
+ * opções de checkin/checkout, bem como trata do envio das opções para o servidor do clube.
+ * Ela possui suporte para tratar com mais de um cartão, mas está programada para exibir e
+ * tratar de checkin apenas para o primeiro da listagem
+ *
+ * @author   Gustavo Seganfredo <gustavosf@gmail.com>
+ * @since    1.0
+ *
+ * TODO:     Permitir gerenciamento de mais de um cartão para o checkin. O sistema do inter foi
+ *           programado para poder exibir mais de um cartão, mas não tivemos ainda experiência
+ *           com situações que caiam nesse caso.
+ */
 public class CheckinGameActivity extends Activity {
+
+    // Ids do Checkin / Checkout conforme formulário
+    private static final String FORM_CHECKIN_ID = "1";
+    private static final String FORM_CHECKOUT_ID = "2";
+    private static final String CHECKIN_URL = "http://internacional.com.br/checkincolorado/checkincolorado_res.php";
 
     protected Game game;
     protected Card card;
@@ -35,12 +53,23 @@ public class CheckinGameActivity extends Activity {
 
     protected Game.Sector checkedSector;
 
+    // ------------------------------------------------------------------------------------- //
+    // - Métodos da Atividade -------------------------------------------------------------- //
+    // ------------------------------------------------------------------------------------- //
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_checkin_game);
 
-        // UI references
+        // Libera a execução de atividade de rede (checkin/out) sem criação de nova thread
+        // TODO: Mandar isso para uma thread separada da thread da interface
+        if (android.os.Build.VERSION.SDK_INT > 9) {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+        }
+
+        // Referencias de UI
         mButtonSectorSelection = (Button)findViewById(R.id.button_sector_choice);
         mViewCheckin = findViewById(R.id.checkin_available_form);
         mSwitchCheckin = (Switch)findViewById(R.id.checkin_switch);
@@ -49,7 +78,7 @@ public class CheckinGameActivity extends Activity {
         mButtonConfirm = (Button)findViewById(R.id.button_confirmation);
         mCheckinEndedMessage = (TextView)findViewById(R.id.checkin_ended_message);
 
-        // UI initialization
+        // Inicializaçao da UI
         Intent intent = getIntent();
         int gameId = intent.getIntExtra(CheckinActivity.EXTRA_GAME_ID, 0);
 
@@ -63,11 +92,11 @@ public class CheckinGameActivity extends Activity {
         List<Card> cards = App.getCards();
 
         if (cards.isEmpty()) {
-            // User os probably CB or any other kind of association that does not need to check-in
+            // Usuário é provavelmente CB ou algum outro tipo de associação que não faz check-in
             mCheckinUnavailableMessage.setVisibility(View.VISIBLE);
         } else {
-            // Only using the first card for now
-            // @TODO Let user choose between cards, if he own more than one
+            // Usando apenas o primeiro cartão da listagem por hora
+            // TODO: Deixar o usuário escolher entre cartões, caso exista mais de um
             card = cards.get(0);
 
             if (game.isCheckinOpen()) {
@@ -90,48 +119,13 @@ public class CheckinGameActivity extends Activity {
                 String text;
                 if (card.isCheckedIn(game)) {
                     Game.Sector sector = card.getCheckinSector(game);
-                    text = "Você confirmou que vai ao jogo\n\n"+sector.name+"\n"+sector.gates;
+                    text = getString(R.string.check_in_made, sector.name, sector.gates);
                 } else {
-                    text = "Você não fez checkin";
+                    text = getString(R.string.didnt_checked_in);
                 }
                 mCheckinEndedMessage.setText(text);
-
-                // In case checkin ended, just show the user status
-                // mSwitchCheckin.setEnabled(false);
-                // mButtonSectorSelection.setEnabled(false);
-                // mButtonConfirm.setVisibility(View.GONE);
             }
         }
-    }
-
-    /**
-     * Handles checkin / checkout changes in layout
-     */
-    public void onSwitchClicked(View view) {
-        boolean on = ((Switch) view).isChecked();
-
-        if (on) {
-            mButtonSectorSelection.setVisibility(View.VISIBLE);
-        } else {
-            mButtonSectorSelection.setVisibility(View.GONE);
-        }
-    }
-
-    /**
-     * Handles checkin/out submission
-     */
-    public void submitCheckin(View view) {
-        boolean in = mSwitchCheckin.isChecked();
-
-        // Submit
-
-        // Some analytics
-        Map<String, String> checkinAnalytics = new HashMap<String, String>();
-        checkinAnalytics.put("mode", in ? "checkin" : "checkout");
-        if (in) checkinAnalytics.put("sector", checkedSector.name);
-
-        Log.d("Analytics", checkinAnalytics.toString());
-        ParseAnalytics.trackEvent("checkin", checkinAnalytics);
     }
 
     @Override
@@ -152,6 +146,71 @@ public class CheckinGameActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
+    // ------------------------------------------------------------------------------------- //
+    // - Outros Métodos -------------------------------------------------------------------- //
+    // ------------------------------------------------------------------------------------- //
+
+    /**
+     * Trata de mudanças de checkin / checkout no layout
+     */
+    public void onSwitchClicked(View view) {
+        boolean on = ((Switch) view).isChecked();
+        mButtonSectorSelection.setVisibility(on ? View.VISIBLE : View.GONE);
+    }
+
+    /**
+     * Trata da submissão do checkin/out no sistema do clube
+     */
+    public void submitCheckin(View view) {
+        final boolean in = mSwitchCheckin.isChecked();
+
+        // Verifica se o usuário tá fazendo checkin e não selecionou um setor
+        if (in && checkedSector == null) {
+            App.Dialog.showAlert(this, getString(R.string.error_no_sector_message),
+                    getString(R.string.error_no_sector_title));
+            return;
+        }
+
+        // Submete o formulário
+        Map<String, String> postValues = new HashMap<String, String>();
+        postValues.put("id_jogo", game.getId());
+        postValues.put("cartao", card.getId());
+        postValues.put("opcao", in ? FORM_CHECKIN_ID : FORM_CHECKOUT_ID);
+        postValues.put("setor", in ? checkedSector.id : "1");
+
+        App.Dialog.showProgress(this, "Efetuando " + (in ? "Checkin" : "Checkout") + "...");
+
+        // Faz o checkin rodando em background
+        HTTPClient httpClient = new HTTPClient(CHECKIN_URL, postValues, new HTTPClientCallbackInterface() {
+            @Override
+            public void success(String html) {
+                App.Dialog.dismissProgress();
+
+                // Registra o checkin
+                if (in) card.checkin(game, checkedSector);
+                else card.checkout(game);
+
+                // Gera o recibo
+                App.printReceipt(card, game);
+
+                // Mostra mensagem de sucesso :)
+                String message = getString(R.string.checkin_sucessfull, (in ? "VAI" : "NÃO VAI"));
+                App.Dialog.showAlert(CheckinGameActivity.this, message, (in ? "Checkin" : "Checkout") + " efetuado");
+
+                // Parse Analytics
+                Map<String, String> checkinAnalytics = new HashMap<String, String>();
+                checkinAnalytics.put("mode", in ? "checkin" : "checkout");
+                if (in) checkinAnalytics.put("sector", checkedSector.name);
+                ParseAnalytics.trackEvent("checkin", checkinAnalytics);
+            }
+        });
+        httpClient.execute((Void) null);
+    }
+
+    /**
+     * Trata a mudança de setor, ao ser selecionada na listagem
+     * @param view Listagem
+     */
     public void sectorSelectionClicked(View view) {
 
         int i = 0;

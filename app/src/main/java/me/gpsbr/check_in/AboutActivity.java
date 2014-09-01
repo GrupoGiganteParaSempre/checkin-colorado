@@ -2,11 +2,17 @@ package me.gpsbr.check_in;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.v4.app.NavUtils;
-import android.view.Menu;
 import android.view.MenuItem;
 
-
+/**
+ * Controller da atividade "About"
+ * Esta atividade é ativada ao clicar sobre o botão de "informação" no app. Ela opera a exibição
+ * de ĩnformações do app, como seus criadores, seus objetivos, como funciona por baixo dos panos,
+ * entre outros.
+ *
+ * @author   Gustavo Seganfredo <gustavosf@gmail.com>
+ * @since    1.0
+ */
 public class AboutActivity extends Activity {
 
     @Override

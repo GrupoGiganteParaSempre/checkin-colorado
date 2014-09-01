@@ -1,9 +1,23 @@
 package me.gpsbr.check_in;
 
+import android.app.AlertDialog;
 import android.app.Application;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.os.AsyncTask;
+import android.os.Environment;
+import android.os.Handler;
+import android.util.Log;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 import com.parse.Parse;
@@ -18,8 +32,10 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.CookieManager;
+import java.net.CookieHandler;
 import java.net.CookiePolicy;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,14 +44,23 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by gust on 26/08/14.
+ * Classe da aplicação.
+ * Consiste em basicamente toda a lógica de login, checkin, checkuot e armazenamento de dados do
+ * aplicativo.
+ *
+ * @author   Gustavo Seganfredo <gustavosf@gmail.com>
+ * @since    1.0
  */
 public class App extends Application {
+
+    final public static String TAG = "Check-in";
 
     protected static Application app;
     protected static Context context;
     protected static SharedPreferences data;
-    protected static OkHttpClient client;
+
+    public static OkHttpClient client;
+
     protected static List<Game> games = new ArrayList<Game>();
     protected static List<Card> cards = new ArrayList<Card>();
 
@@ -46,12 +71,15 @@ public class App extends Application {
         context = app.getApplicationContext();
         data = context.getSharedPreferences("data", MODE_PRIVATE);
 
-        // Creating http client with cookie management
-        CookieManager cookieManager = new CookieManager();
-        cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
-        cookieManager.getCookieStore().removeAll();
+        CookieSyncManager.createInstance(this);
+        CookieManager.getInstance().setAcceptCookie(true);
+        CookieManager.getInstance().removeAllCookie();
+        WebkitCookieManagerProxy coreCookieManager = new WebkitCookieManagerProxy(null, CookiePolicy.ACCEPT_ALL);
+        CookieHandler.setDefault(coreCookieManager);
+
+        // Cria um client http com cookies
         client = new OkHttpClient();
-        client.setCookieHandler(cookieManager);
+        client.setCookieHandler(coreCookieManager);
 
         // Initializing Parse
         Parse.initialize(this,
@@ -61,7 +89,9 @@ public class App extends Application {
     }
 
     /**
-     * Simply show toasts
+     * Proxy para exibir toasts no app
+     *
+     * @param text Texto a ser exibido no toast
      */
     public static void toaster(CharSequence text) {
         int duration = Toast.LENGTH_SHORT;
@@ -70,11 +100,22 @@ public class App extends Application {
     }
 
     /**
-     * Getter and setter for a simple data storage
+     * Proxy para a recuperação de dados básico do app, usando key-value
+     *
+     * @param key Chave do dado a ser recuperado
+     * @return    Dado
      */
     public static String data(String key) {
         return data.getString(key, "");
     }
+
+    /**
+     * Proxy para o armazenameto de dados básico do app, usando key-value
+     *
+     * @param key   Chave do dado a ser inserido / editado
+     * @param value Valor do dado
+     * @return      true se o dado foi inserido corretamente, false do contrário
+     */
     public static Boolean data(String key, String value) {
         SharedPreferences.Editor editor = data.edit();
         editor.putString(key, value);
@@ -82,16 +123,18 @@ public class App extends Application {
     }
 
     /**
-     * Finds if a user is logged in or not
+     * Verifica se usuário está logado ou não
+     *
+     * @return true se o usuário estiver logado, falso do contrário
      */
     public static Boolean isUserLoggedIn() {
         return !data("registration_number").equals("");
     }
 
     /**
-     * Logs out a user
+     * Desloga um usuário
      */
-    public static Boolean logout() {
+    public static void logout() {
         data("registration_number", "");
         data("password", "");
         data("checkin_disabled", "");
@@ -103,27 +146,39 @@ public class App extends Application {
         Intent intent = new Intent(context, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
-        return true;
     }
 
     /**
-     * Logs in a user
-     * Simply register their r-number and password in the storage
-     * @TODO Think about extracting the login logic from LoginActivity to here?
+     * Loga um usuário
+     * Simplesmente registra o número de matrícula e senha
+     *
+     * @param registration_number Número de matrícula
+     * @param password            Senha
      */
-    public static Boolean login(String registration_number, String password) {
+    public static void login(String registration_number, String password) {
+        // @TODO Mover toda a lógia de login do controller LoginActivity pra cá?
         data("registration_number", registration_number);
         data("password", password);
-        return true;
     }
 
     /**
-     * HTTP Request handler
+     * HTTP GET Request handler
+     *
+     * @param url URL a ser acessada
+     * @return    HTMl resultante da requisição, "" em caso de problemas
      */
     public static String doRequest(String url) {
         Map<String, String> map = new HashMap<String, String>();
         return doRequest(url, map);
     }
+
+    /**
+     * HTTP POST Request handler
+     *
+     * @param url        URL a ser acessada
+     * @param postValues Dados a serem postados
+     * @return           HTMl resultante da requisição, "" em caso de problemas
+     */
     public static String doRequest(String url, Map<String, String> postValues) {
         // building request
         Request.Builder builder = new Request.Builder().url(url);
@@ -148,6 +203,51 @@ public class App extends Application {
         } catch (IOException e) {
             return "";
         }
+    }
+
+    public static void printReceipt(final Card card, final Game game) {// Imprime o comprovante
+        final WebView w = new WebView(App.app);
+        final WebSettings settings = w.getSettings();
+        w.setInitialScale(100);
+        settings.setTextZoom(100);
+        settings.setJavaScriptEnabled(true);
+        String url = App.context.getString(R.string.url_receipt, card.getId(), game.getId());
+        Log.d(App.TAG, url);
+        w.loadUrl(url);
+        w.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                view.loadUrl(url);
+                return true;
+            }
+
+            @Override
+            public void onPageFinished(final WebView view, String url) {
+                view.loadUrl("javascript:(function(){document.body.style.width='465px'})()");
+
+                // Delay de 200ms, suficiente para ser renderizada a página
+                new Handler().postDelayed(new Runnable() {
+                    public void run() {
+                        Bitmap b = Bitmap.createBitmap(465, 465, Bitmap.Config.ARGB_8888);
+                        Canvas c = new Canvas(b);
+                        view.draw(c);
+                        File file = new File(
+                                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                                "Check-in/checkin-" + game.getId() + ".png");
+                        file.mkdirs();
+                        if (file.exists()) file.delete();
+                        try {
+                            FileOutputStream out = new FileOutputStream(file);
+                            b.compress(Bitmap.CompressFormat.PNG, 90, out);
+                            out.flush();
+                            out.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, 500);
+            }
+        });
     }
 
     protected static class Scrapper {
@@ -181,9 +281,13 @@ public class App extends Application {
             String venue = info[2];
 
             // We have a gameid and sectors to fill
-            Element checkinForm = gameContainer.select("form").first();
-            String id = checkinForm.select("input[name=id_jogo]").first().val();
+            Elements checkinForms = gameContainer.select("form");
+            if (checkinForms.isEmpty()) {
+                return new Game(null, home, away, venue, date, tournament);
+            }
 
+            Element checkinForm = checkinForms.first();
+            String id = checkinForm.select("input[name=id_jogo]").first().val();
             Game game = new Game(id, home, away, venue, date, tournament);
 
             if (!gameContainer.html().contains("do site foi finalizado")) {
@@ -228,8 +332,11 @@ public class App extends Application {
         }
 
     }
+
     /**
-     * Creates a list of games scraping a page
+     * Cria uma lista de jogos fazendo scrape da página de checkin
+     *
+     * @param html HTML da página de checkin
      */
     public static void buildCheckinFrom(String html) {
         Scrapper scrapper = new Scrapper(html);
@@ -249,9 +356,19 @@ public class App extends Application {
             }
         }
     }
+
+    /**
+     * Retorna a lista de jogos
+     * @return Lista de jogos
+     */
     public static List<Game> getGameList() {
         return games;
     }
+
+    /**
+     * Retorna a lista de cartões
+     * @return Lista de cartões
+     */
     public static List<Card> getCards() { return cards; }
 
     /**
@@ -262,7 +379,85 @@ public class App extends Application {
     }
 
 
+    /**
+     * Classe proxy para dialogs do android
+     *
+     * @author  Gustavo Seganfredo
+     * @since   1.0
+     */
+    public static class Dialog {
+
+        protected static ProgressDialog progressDialog;
+        protected static AlertDialog alertDialog;
+
+        /**
+         * Mostra dialog de progresso com mensagem
+         *
+         * @param context Contexto da atividade pai
+         * @param message Mensagem a ser exibida
+         * @return        Objeto ProgressDialog
+         */
+        public static ProgressDialog showProgress(Context context, String message) {
+            progressDialog = ProgressDialog.show(context, "", message, true);
+            return progressDialog;
+        }
+
+        /**
+         * Desaparece com a dialog de progresso
+         */
+        public static void dismissProgress() {
+            progressDialog.dismiss();
+        }
+
+        /**
+         * Exibe uma mensagem de alerta
+         *
+         * @param context  Contexto da atividade pai
+         * @param message  Mensagem da janela
+         * @param okText   Texto do botão OK
+         * @param callback Callback a ser executada depois de clicar no botão ok
+         * @return         Objeto AlertDialog
+         */
+        public static AlertDialog showAlert(Context context, String message, String title,
+                                            String okText,
+                                            DialogInterface.OnClickListener callback) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setMessage(message).setCancelable(false);
+            if (title != null) builder.setTitle(title);
+            builder.setPositiveButton(okText, callback);
+            alertDialog = builder.create();
+            alertDialog.show();
+            return alertDialog;
+        }
+        public static AlertDialog showAlert(Context context, String message) {
+            return showAlert(context, message, null, "OK");
+        }
+        public static AlertDialog showAlert(Context context, String message, String title) {
+            return showAlert(context, message, title, "OK");
+        }
+        public static AlertDialog showAlert(Context context, String message, String title,
+                                            String okText) {
+            return showAlert(context, message, title, okText, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                }
+            });
+        }
+    }
+
+
+    /**
+     * Classe de utilidades variadas não-diretamente relacionadas ao app
+     *
+     * @author  Gustavo Seganfredo
+     * @since   1.0
+     */
     public static class Utils {
+
+        /**
+         * Retorna uma frase com todas as palavras capitalizadas
+         * @param string Frase a ser capitalizada
+         * @return       Frase capitalizada
+         */
         public static String capitalizeWords(String string) {
             char[] chars = string.toLowerCase().toCharArray();
             boolean found = false;
@@ -276,5 +471,71 @@ public class App extends Application {
             }
             return String.valueOf(chars);
         }
+    }
+}
+
+interface HTTPClientCallbackInterface {
+    public void success(String html);
+}
+
+/**
+ * Represents an asynchronous login/registration task used to authenticate
+ * the user.
+ */
+class HTTPClient extends AsyncTask<Void, Void, String> {
+
+    protected String url;
+    protected Map<String, String> postValues = new HashMap<String, String>();
+    protected HTTPClientCallbackInterface callback;
+
+    HTTPClient(String url) {
+        this(url, null, null);
+    }
+    HTTPClient(String url, HTTPClientCallbackInterface callback) {
+        this(url, null, callback);
+    }
+    HTTPClient(String url, Map<String, String> postValues, HTTPClientCallbackInterface callback) {
+        this.url = url;
+        this.postValues = postValues;
+        this.callback = callback;
+    }
+
+    @Override
+    protected String doInBackground(Void... params) {
+        Log.d("checkin", "doinbackground");
+        // building request
+        Request.Builder builder = new Request.Builder().url(url);
+
+        if (!postValues.isEmpty()) {
+            FormEncodingBuilder formBody = new FormEncodingBuilder();
+
+            // in case of a post request (postValues not empty), include the post fields
+            Iterator<String> keySetIterator = postValues.keySet().iterator();
+            while (keySetIterator.hasNext()) {
+                String key = keySetIterator.next();
+                formBody.add(key, postValues.get(key));
+            }
+            builder.post(formBody.build());
+        }
+
+        Request request = builder.build();
+
+        try {
+            Response response = App.client.newCall(request).execute();
+            return new String(response.body().bytes(), "ISO-8859-1");
+        } catch (IOException e) {
+            return "";
+        }
+    }
+
+    @Override
+    protected void onPostExecute(final String html) {
+        Log.d("checkin", "postexecute");
+        if (callback != null) callback.success(html);
+    }
+
+    @Override
+    protected void onCancelled() {
+        if (callback != null) callback.success(null);
     }
 }
