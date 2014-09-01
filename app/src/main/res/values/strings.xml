@@ -18,5 +18,6 @@
     <string name="no">Sim</string>
     <string name="checkin_closed">Nenhuma partida disponível</string>
     <string name="checkin_ended">O checkin para esta partida já foi finalizado</string>
+    <string name="url_login">http://internacional.com.br/checkincolorado/logar.php</string>
 
 </resources>

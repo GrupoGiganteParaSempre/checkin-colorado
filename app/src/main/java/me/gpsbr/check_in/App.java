@@ -9,8 +9,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Handler;
+import android.util.Log;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.WebSettings;
@@ -54,7 +56,9 @@ public class App extends Application {
     protected static Application app;
     protected static Context context;
     protected static SharedPreferences data;
-    protected static OkHttpClient client;
+
+    public static OkHttpClient client;
+
     protected static List<Game> games = new ArrayList<Game>();
     protected static List<Card> cards = new ArrayList<Card>();
 
@@ -72,9 +76,6 @@ public class App extends Application {
         CookieHandler.setDefault(coreCookieManager);
 
         // Cria um client http com cookies
-//        CookieManager cookieManager = new CookieManager();
-//        cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
-//        cookieManager.getCookieStore().removeAll(); // Limpa cookies de sessões anteriores
         client = new OkHttpClient();
         client.setCookieHandler(coreCookieManager);
 
@@ -469,5 +470,71 @@ public class App extends Application {
             }
             return String.valueOf(chars);
         }
+    }
+}
+
+interface HTTPClientCallbackInterface {
+    public void success(String html);
+}
+
+/**
+ * Represents an asynchronous login/registration task used to authenticate
+ * the user.
+ */
+class HTTPClient extends AsyncTask<Void, Void, String> {
+
+    protected String url;
+    protected Map<String, String> postValues = new HashMap<String, String>();
+    protected HTTPClientCallbackInterface callback;
+
+    HTTPClient(String url) {
+        this(url, null, null);
+    }
+    HTTPClient(String url, HTTPClientCallbackInterface callback) {
+        this(url, null, callback);
+    }
+    HTTPClient(String url, Map<String, String> postValues, HTTPClientCallbackInterface callback) {
+        this.url = url;
+        this.postValues = postValues;
+        this.callback = callback;
+    }
+
+    @Override
+    protected String doInBackground(Void... params) {
+        Log.d("checkin", "doinbackground");
+        // building request
+        Request.Builder builder = new Request.Builder().url(url);
+
+        if (!postValues.isEmpty()) {
+            FormEncodingBuilder formBody = new FormEncodingBuilder();
+
+            // in case of a post request (postValues not empty), include the post fields
+            Iterator<String> keySetIterator = postValues.keySet().iterator();
+            while (keySetIterator.hasNext()) {
+                String key = keySetIterator.next();
+                formBody.add(key, postValues.get(key));
+            }
+            builder.post(formBody.build());
+        }
+
+        Request request = builder.build();
+
+        try {
+            Response response = App.client.newCall(request).execute();
+            return new String(response.body().bytes(), "ISO-8859-1");
+        } catch (IOException e) {
+            return "";
+        }
+    }
+
+    @Override
+    protected void onPostExecute(final String html) {
+        Log.d("checkin", "postexecute");
+        if (callback != null) callback.success(html);
+    }
+
+    @Override
+    protected void onCancelled() {
+        if (callback != null) callback.success(null);
     }
 }
