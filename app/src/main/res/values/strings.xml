@@ -1,22 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">Check-in</string>
 
-    <!-- itens do menu -->
+    <!-- Itens do menu -->
     <string name="action_logout">Deslogar</string>
     <string name="action_about">Sobre</string>
-    <string name="action_exit">Sair</string>
     <string name="action_settings">Settings</string>
-    <string name="title_activity_checkin">Checkin</string>
-    <string name="title_activity_about">Sobre</string>
-    <string name="title_activity_checkin_game">Checkin</string>
-    <string name="hello_world">Hello world!</string>
 
+    <!-- AboutActivity -->
+    <string name="title_activity_about">Sobre</string>
+
+    <!-- LoginActivity -->
+    <string name="url_login">http://internacional.com.br/checkincolorado/logar.php</string>
+    <string name="title_activity_login">Login</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_registration_number">Matrícula</string>
+    <string name="prompt_password">Senha</string>
+    <string name="action_login">Login</string>
+    <string name="error_invalid_registration_number">Número de matrícula inválido</string>
+    <string name="error_invalid_password">Senha inválida</string>
+    <string name="error_incorrect_password">Senha incorreta</string>
+    <string name="error_mandatory_field">Este campo é obrigatório</string>
+    <string name="login_sucessfull">Identificação aceita</string>
+    <string name="login_matricula">Matrícula</string>
+    <string name="login_senha">Senha</string>
+    <string name="unidentifyed_error">Um erro ocorreu, tente novamente mais tarde</string>
+    <string name="logout">Voce foi deslogado</string>
+
+    <!-- CheckinActivity -->
+    <string name="title_activity_checkin">Checkin</string>
     <string name="checkin_unavailable">Sua modalidade de cartão não faz Check-In</string>
     <string name="yes">Não</string>
     <string name="no">Sim</string>
     <string name="checkin_closed">Nenhuma partida disponível</string>
     <string name="checkin_ended">O checkin para esta partida já foi finalizado</string>
+
+    <!-- CheckinGameActivity -->
+    <string name="title_activity_checkin_game">Checkin</string>
+    <string name="didnt_checked_in">Você não fez checkin</string>
+    <string name="check_in_made" formatted="false">Você confirmou que vai ao jogo\n\n%s\n%s</string>
+    <string name="error_no_sector_title">Setor não-informado</string>
+    <string name="error_no_sector_message">Você precisa selecionar um setor para o jogo</string>
+    <string name="checkin_sucessfull" formatted="false">A comunicação de que você %s a esta partida foi enviada</string>
+    <string name="going_question">Vai ao jogo?</string>
+    <string name="yes_or_no">Sim/Não</string>
+    <string name="choose_your_sector">Escolha seu setor</string>
+    <string name="confirm">Confirmar</string>
+    <string name="url_receipt" formatted="false"><![CDATA[http://internacional.com.br/checkincolorado/checkincolorado_comprovante.php?cartao=%s&id_jogo=%s]]></string>
 
 </resources>

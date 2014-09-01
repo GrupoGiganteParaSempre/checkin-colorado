@@ -7,6 +7,17 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.os.AsyncTask;
+import android.os.Environment;
+import android.os.Handler;
+import android.util.Log;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 import com.parse.Parse;
@@ -21,8 +32,10 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.CookieManager;
+import java.net.CookieHandler;
 import java.net.CookiePolicy;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,10 +53,14 @@ import java.util.Map;
  */
 public class App extends Application {
 
+    final public static String TAG = "Check-in";
+
     protected static Application app;
     protected static Context context;
     protected static SharedPreferences data;
-    protected static OkHttpClient client;
+
+    public static OkHttpClient client;
+
     protected static List<Game> games = new ArrayList<Game>();
     protected static List<Card> cards = new ArrayList<Card>();
 
@@ -54,12 +71,15 @@ public class App extends Application {
         context = app.getApplicationContext();
         data = context.getSharedPreferences("data", MODE_PRIVATE);
 
-        // Creating http client with cookie management
-        CookieManager cookieManager = new CookieManager();
-        cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
-        cookieManager.getCookieStore().removeAll();
+        CookieSyncManager.createInstance(this);
+        CookieManager.getInstance().setAcceptCookie(true);
+        CookieManager.getInstance().removeAllCookie();
+        WebkitCookieManagerProxy coreCookieManager = new WebkitCookieManagerProxy(null, CookiePolicy.ACCEPT_ALL);
+        CookieHandler.setDefault(coreCookieManager);
+
+        // Cria um client http com cookies
         client = new OkHttpClient();
-        client.setCookieHandler(cookieManager);
+        client.setCookieHandler(coreCookieManager);
 
         // Initializing Parse
         Parse.initialize(this,
@@ -185,6 +205,51 @@ public class App extends Application {
         }
     }
 
+    public static void printReceipt(final Card card, final Game game) {// Imprime o comprovante
+        final WebView w = new WebView(App.app);
+        final WebSettings settings = w.getSettings();
+        w.setInitialScale(100);
+        settings.setTextZoom(100);
+        settings.setJavaScriptEnabled(true);
+        String url = App.context.getString(R.string.url_receipt, card.getId(), game.getId());
+        Log.d(App.TAG, url);
+        w.loadUrl(url);
+        w.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                view.loadUrl(url);
+                return true;
+            }
+
+            @Override
+            public void onPageFinished(final WebView view, String url) {
+                view.loadUrl("javascript:(function(){document.body.style.width='465px'})()");
+
+                // Delay de 200ms, suficiente para ser renderizada a página
+                new Handler().postDelayed(new Runnable() {
+                    public void run() {
+                        Bitmap b = Bitmap.createBitmap(465, 465, Bitmap.Config.ARGB_8888);
+                        Canvas c = new Canvas(b);
+                        view.draw(c);
+                        File file = new File(
+                                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                                "Check-in/checkin-" + game.getId() + ".png");
+                        file.mkdirs();
+                        if (file.exists()) file.delete();
+                        try {
+                            FileOutputStream out = new FileOutputStream(file);
+                            b.compress(Bitmap.CompressFormat.PNG, 90, out);
+                            out.flush();
+                            out.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, 500);
+            }
+        });
+    }
+
     protected static class Scrapper {
         protected String html;
         protected Document dom;
@@ -216,9 +281,13 @@ public class App extends Application {
             String venue = info[2];
 
             // We have a gameid and sectors to fill
-            Element checkinForm = gameContainer.select("form").first();
-            String id = checkinForm.select("input[name=id_jogo]").first().val();
+            Elements checkinForms = gameContainer.select("form");
+            if (checkinForms.isEmpty()) {
+                return new Game(null, home, away, venue, date, tournament);
+            }
 
+            Element checkinForm = checkinForms.first();
+            String id = checkinForm.select("input[name=id_jogo]").first().val();
             Game game = new Game(id, home, away, venue, date, tournament);
 
             if (!gameContainer.html().contains("do site foi finalizado")) {
@@ -402,5 +471,71 @@ public class App extends Application {
             }
             return String.valueOf(chars);
         }
+    }
+}
+
+interface HTTPClientCallbackInterface {
+    public void success(String html);
+}
+
+/**
+ * Represents an asynchronous login/registration task used to authenticate
+ * the user.
+ */
+class HTTPClient extends AsyncTask<Void, Void, String> {
+
+    protected String url;
+    protected Map<String, String> postValues = new HashMap<String, String>();
+    protected HTTPClientCallbackInterface callback;
+
+    HTTPClient(String url) {
+        this(url, null, null);
+    }
+    HTTPClient(String url, HTTPClientCallbackInterface callback) {
+        this(url, null, callback);
+    }
+    HTTPClient(String url, Map<String, String> postValues, HTTPClientCallbackInterface callback) {
+        this.url = url;
+        this.postValues = postValues;
+        this.callback = callback;
+    }
+
+    @Override
+    protected String doInBackground(Void... params) {
+        Log.d("checkin", "doinbackground");
+        // building request
+        Request.Builder builder = new Request.Builder().url(url);
+
+        if (!postValues.isEmpty()) {
+            FormEncodingBuilder formBody = new FormEncodingBuilder();
+
+            // in case of a post request (postValues not empty), include the post fields
+            Iterator<String> keySetIterator = postValues.keySet().iterator();
+            while (keySetIterator.hasNext()) {
+                String key = keySetIterator.next();
+                formBody.add(key, postValues.get(key));
+            }
+            builder.post(formBody.build());
+        }
+
+        Request request = builder.build();
+
+        try {
+            Response response = App.client.newCall(request).execute();
+            return new String(response.body().bytes(), "ISO-8859-1");
+        } catch (IOException e) {
+            return "";
+        }
+    }
+
+    @Override
+    protected void onPostExecute(final String html) {
+        Log.d("checkin", "postexecute");
+        if (callback != null) callback.success(html);
+    }
+
+    @Override
+    protected void onCancelled() {
+        if (callback != null) callback.success(null);
     }
 }
