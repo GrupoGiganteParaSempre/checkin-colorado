@@ -4,24 +4,14 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
 import android.os.StrictMode;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -161,7 +151,7 @@ public class CheckinGameActivity extends Activity {
 
         // Submit
         Map<String, String> postValues = new HashMap<String, String>();
-        postValues.put("jogo_id", game.getId());
+        postValues.put("id_jogo", game.getId());
         postValues.put("cartao", card.getId());
         postValues.put("opcao", in ? FORM_CHECKIN_ID : FORM_CHECKOUT_ID);
         postValues.put("setor", in ? checkedSector.id : "1");
@@ -170,52 +160,7 @@ public class CheckinGameActivity extends Activity {
         String html = App.doRequest(CHECKIN_URL, postValues);
         App.Dialog.dismissProgress();
 
-        // Imprime o comprovante
-        final WebView w = new WebView(this);
-        final WebSettings settings = w.getSettings();
-        w.setInitialScale(100);
-        settings.setTextZoom(100);
-        settings.setJavaScriptEnabled(true);
-//        setContentView(w);
-        w.loadUrl("http://192.168.1.7/checkin-comprovante.html");
-
-        w.setWebViewClient(new WebViewClient() {
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                view.loadUrl(url);
-                return true;
-            }
-
-            @Override
-            public void onPageFinished(final WebView view, String url) {
-                view.loadUrl("javascript:(function(){document.body.style.width='465px'})()");
-                Handler handler = new Handler();
-                handler.postDelayed(new Runnable() {
-                    public void run() {
-
-                        Bitmap b = Bitmap.createBitmap(465, 465, Bitmap.Config.ARGB_8888);
-                        Canvas c = new Canvas(b);
-                        view.draw(c);
-
-                        // Get the directory for the user's public pictures directory.
-                        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                                "Check-in/checkin-"+game.getId()+".png");
-                        file.mkdirs();
-                        if (file.exists()) file.delete();
-                        try {
-                            FileOutputStream out = new FileOutputStream(file);
-                            b.compress(Bitmap.CompressFormat.PNG, 90, out);
-                            out.flush();
-                            out.close();
-
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        Log.d("webview", "salvo...");
-                    }
-                }, 500);
-            }
-        });
+        App.printReceipt(card, game);
 
         String message = "A comunicação de que você "+(in ? "VAI" : "NÃO VAI")+" a esta partida foi enviada";
         App.Dialog.showAlert(this, message, (in ? "Checkin" : "Checkout") + " efetuado");

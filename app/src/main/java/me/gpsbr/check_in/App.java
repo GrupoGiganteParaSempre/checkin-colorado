@@ -7,6 +7,15 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.os.Environment;
+import android.os.Handler;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 import com.parse.Parse;
@@ -21,8 +30,10 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.CookieManager;
+import java.net.CookieHandler;
 import java.net.CookiePolicy;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,12 +65,18 @@ public class App extends Application {
         context = app.getApplicationContext();
         data = context.getSharedPreferences("data", MODE_PRIVATE);
 
-        // Creating http client with cookie management
-        CookieManager cookieManager = new CookieManager();
-        cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
-        cookieManager.getCookieStore().removeAll();
+        CookieSyncManager.createInstance(this);
+        CookieManager.getInstance().setAcceptCookie(true);
+        CookieManager.getInstance().removeAllCookie();
+        WebkitCookieManagerProxy coreCookieManager = new WebkitCookieManagerProxy(null, CookiePolicy.ACCEPT_ALL);
+        CookieHandler.setDefault(coreCookieManager);
+
+        // Cria um client http com cookies
+//        CookieManager cookieManager = new CookieManager();
+//        cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
+//        cookieManager.getCookieStore().removeAll(); // Limpa cookies de sessões anteriores
         client = new OkHttpClient();
-        client.setCookieHandler(cookieManager);
+        client.setCookieHandler(coreCookieManager);
 
         // Initializing Parse
         Parse.initialize(this,
@@ -185,6 +202,52 @@ public class App extends Application {
         }
     }
 
+    public static void printReceipt(final Card card, final Game game) {// Imprime o comprovante
+//        CookieSyncManager.getInstance().sync();
+        final WebView w = new WebView(App.app);
+        final WebSettings settings = w.getSettings();
+        w.setInitialScale(100);
+        settings.setTextZoom(100);
+        settings.setJavaScriptEnabled(true);
+//        w.loadUrl("http://192.168.1.7/checkin-comprovante.html");
+        String url = "http://internacional.com.br/checkincolorado/checkincolorado_comprovante.php?cartao="+card.getId()+"&id_jogo="+game.getId();
+        w.loadUrl(url);
+        w.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                view.loadUrl(url);
+                return true;
+            }
+
+            @Override
+            public void onPageFinished(final WebView view, String url) {
+                view.loadUrl("javascript:(function(){document.body.style.width='465px'})()");
+
+                // Delay de 200ms, suficiente para ser renderizada a página
+                new Handler().postDelayed(new Runnable() {
+                    public void run() {
+                        Bitmap b = Bitmap.createBitmap(465, 465, Bitmap.Config.ARGB_8888);
+                        Canvas c = new Canvas(b);
+                        view.draw(c);
+                        File file = new File(
+                                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                                "Check-in/checkin-" + game.getId() + ".png");
+                        file.mkdirs();
+                        if (file.exists()) file.delete();
+                        try {
+                            FileOutputStream out = new FileOutputStream(file);
+                            b.compress(Bitmap.CompressFormat.PNG, 90, out);
+                            out.flush();
+                            out.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, 500);
+            }
+        });
+    }
+
     protected static class Scrapper {
         protected String html;
         protected Document dom;
@@ -216,9 +279,13 @@ public class App extends Application {
             String venue = info[2];
 
             // We have a gameid and sectors to fill
-            Element checkinForm = gameContainer.select("form").first();
-            String id = checkinForm.select("input[name=id_jogo]").first().val();
+            Elements checkinForms = gameContainer.select("form");
+            if (checkinForms.isEmpty()) {
+                return new Game(null, home, away, venue, date, tournament);
+            }
 
+            Element checkinForm = checkinForms.first();
+            String id = checkinForm.select("input[name=id_jogo]").first().val();
             Game game = new Game(id, home, away, venue, date, tournament);
 
             if (!gameContainer.html().contains("do site foi finalizado")) {
