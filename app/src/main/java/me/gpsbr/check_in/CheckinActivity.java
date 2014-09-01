@@ -34,29 +34,60 @@ public class CheckinActivity extends Activity {
     // Data refs
     private List<Game> games;
 
+    // ------------------------------------------------------------------------------------- //
+    // - Métodos da Atividade -------------------------------------------------------------- //
+    // ------------------------------------------------------------------------------------- //
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_checkin);
 
-        // UI refs init
+        // Inicialização das referências de UI
         mGameList = (ListView) findViewById(R.id.game_list);
         mCheckinClosedMessage = (TextView) findViewById(R.id.checkin_closed_message);
 
         games = App.getGameList();
 
         if (games.isEmpty()) {
-            // Checkin is closed, hide game list and show message
+            // Checkin fechado, esconde a lista de jogos e mostra mensagem
             mCheckinClosedMessage.setVisibility(View.VISIBLE);
             mGameList.setVisibility(View.GONE);
         } else {
-            // Mount gamelist
+            // Monta lista de jogos
             ArrayAdapter<Game> adapter = new GameListAdapter();
             mGameList.setAdapter(adapter);
             registerClickCallback();
         }
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.checkin, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.action_logout) {
+            App.logout();
+            finish();
+        } else if (id == R.id.action_about) {
+            Intent intent = new Intent(this, AboutActivity.class);
+            startActivity(intent);
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    // ------------------------------------------------------------------------------------- //
+    // - Outros Métodos -------------------------------------------------------------------- //
+    // ------------------------------------------------------------------------------------- //
+
+    /**
+     * Callback para quando se clica em um jogo da lista
+     */
     private void registerClickCallback() {
         ListView list = (ListView)findViewById(R.id.game_list);
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -71,6 +102,9 @@ public class CheckinActivity extends Activity {
         });
     }
 
+    /**
+     * Adapter para mostrar os jogos no formato de lista
+     */
     private class GameListAdapter extends ArrayAdapter<Game> {
         public GameListAdapter() {
             super(CheckinActivity.this, R.layout.game_list_view, games);
@@ -97,31 +131,5 @@ public class CheckinActivity extends Activity {
 
             return itemView;
         }
-    }
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.checkin, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        if (id == R.id.action_logout) {
-            App.logout();
-            finish();
-        } else if (id == R.id.action_about) {
-            // Go to AboutActivity
-            Intent intent = new Intent(this, AboutActivity.class);
-            startActivity(intent);
-        }
-        return super.onOptionsItemSelected(item);
     }
 }

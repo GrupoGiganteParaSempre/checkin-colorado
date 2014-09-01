@@ -53,6 +53,8 @@ import java.util.Map;
  */
 public class App extends Application {
 
+    final public static String TAG = "Check-in";
+
     protected static Application app;
     protected static Context context;
     protected static SharedPreferences data;
@@ -204,14 +206,13 @@ public class App extends Application {
     }
 
     public static void printReceipt(final Card card, final Game game) {// Imprime o comprovante
-//        CookieSyncManager.getInstance().sync();
         final WebView w = new WebView(App.app);
         final WebSettings settings = w.getSettings();
         w.setInitialScale(100);
         settings.setTextZoom(100);
         settings.setJavaScriptEnabled(true);
-//        w.loadUrl("http://192.168.1.7/checkin-comprovante.html");
-        String url = "http://internacional.com.br/checkincolorado/checkincolorado_comprovante.php?cartao="+card.getId()+"&id_jogo="+game.getId();
+        String url = App.context.getString(R.string.url_receipt, card.getId(), game.getId());
+        Log.d(App.TAG, url);
         w.loadUrl(url);
         w.setWebViewClient(new WebViewClient() {
             @Override
