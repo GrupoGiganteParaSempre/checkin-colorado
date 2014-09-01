@@ -188,7 +188,8 @@ public class CheckinGameActivity extends Activity {
                         w.draw(c);
 
                         // Get the directory for the user's public pictures directory.
-                        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "Check-in/checkin.png");
+                        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                                "Check-in/checkin-"+game.getId()+".png");
                         file.mkdirs();
                         if (file.exists()) file.delete();
                         try {
