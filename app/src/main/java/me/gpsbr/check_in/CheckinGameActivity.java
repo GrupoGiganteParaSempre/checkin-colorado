@@ -172,20 +172,30 @@ public class CheckinGameActivity extends Activity {
 
         // Imprime o comprovante
         final WebView w = new WebView(this);
-        w.setHorizontalScrollbarOverlay(false);
-        setContentView(w);
+        final WebSettings settings = w.getSettings();
+        w.setInitialScale(100);
+        settings.setTextZoom(100);
+        settings.setJavaScriptEnabled(true);
+//        setContentView(w);
         w.loadUrl("http://192.168.1.7/checkin-comprovante.html");
 
         w.setWebViewClient(new WebViewClient() {
-            public void onPageFinished(WebView view, String url) {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                view.loadUrl(url);
+                return true;
+            }
+
+            @Override
+            public void onPageFinished(final WebView view, String url) {
+                view.loadUrl("javascript:(function(){document.body.style.width='465px'})()");
                 Handler handler = new Handler();
                 handler.postDelayed(new Runnable() {
                     public void run() {
-                        float scale = w.getScale();
-                        int webViewHeight = (int) (w.getContentHeight() * scale);
-                        Bitmap b = Bitmap.createBitmap(730, webViewHeight, Bitmap.Config.ARGB_8888);
+
+                        Bitmap b = Bitmap.createBitmap(465, 465, Bitmap.Config.ARGB_8888);
                         Canvas c = new Canvas(b);
-                        w.draw(c);
+                        view.draw(c);
 
                         // Get the directory for the user's public pictures directory.
                         File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
