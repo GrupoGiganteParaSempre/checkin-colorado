@@ -29,16 +29,16 @@
     <string name="logout">Voce foi deslogado</string>
 
     <!-- CheckinActivity -->
-    <string name="title_activity_checkin">Checkin</string>
+    <string name="title_activity_checkin">Check-in</string>
     <string name="checkin_unavailable">Sua modalidade de cartão não faz Check-In</string>
     <string name="yes">Não</string>
     <string name="no">Sim</string>
     <string name="checkin_closed">Nenhuma partida disponível</string>
-    <string name="checkin_ended">O checkin para esta partida já foi finalizado</string>
+    <string name="checkin_ended">O check-in para esta partida já foi finalizado</string>
 
     <!-- CheckinGameActivity -->
-    <string name="title_activity_checkin_game">Checkin</string>
-    <string name="didnt_checked_in">Você não fez checkin</string>
+    <string name="title_activity_checkin_game">Check-in</string>
+    <string name="didnt_checked_in">Você não fez check-in</string>
     <string name="check_in_made" formatted="false">Você confirmou que vai ao jogo\n\n%s\n%s</string>
     <string name="error_no_sector_title">Setor não-informado</string>
     <string name="error_no_sector_message">Você precisa selecionar um setor para o jogo</string>
@@ -49,4 +49,5 @@
     <string name="confirm">Confirmar</string>
     <string name="url_receipt" formatted="false"><![CDATA[http://internacional.com.br/checkincolorado/checkincolorado_comprovante.php?cartao=%s&id_jogo=%s]]></string>
 
+    <string name="error_network">Um erro ocorreu. Verifique se você está conectado à rede e tente novamente mais tarde.</string>
 </resources>

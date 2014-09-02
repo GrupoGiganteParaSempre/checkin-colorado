@@ -74,6 +74,10 @@ public class App extends Application {
     }
     HashMap<TrackerName, Tracker> mTrackers = new HashMap<TrackerName, Tracker>();
 
+    // ------------------------------------------------------------------------------------- //
+    // - Métodos da Aplicação -------------------------------------------------------------- //
+    // ------------------------------------------------------------------------------------- //
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -232,14 +236,27 @@ public class App extends Application {
         }
     }
 
-    public static void printReceipt(final Card card, final Game game) {// Imprime o comprovante
+    /**
+     * Salva o recibo de check-in na memória do aparelho
+     *
+     * @param card Cartão ao qual foi feito o checkin
+     * @param game Jogo para o qual foi feito o checkin
+     *
+     * TODO: Tratar problemas com a impressão do checkin (rede, salvamento do arquivo, etc)
+     */
+    public static void printReceipt(final Card card, final Game game) {
         final WebView w = new WebView(App.app);
         final WebSettings settings = w.getSettings();
+
+        // Seta escala e zoom para que o webview não ajuste o tamanho a belprazer, ferrando com
+        // o layout da página
         w.setInitialScale(100);
         settings.setTextZoom(100);
+
+        // Libera javascript, porque iremos injetar depois para fixar o tamanho da janela
         settings.setJavaScriptEnabled(true);
+
         String url = App.context.getString(R.string.url_receipt, card.getId(), game.getId());
-        Log.d(App.TAG, url);
         w.loadUrl(url);
         w.setWebViewClient(new WebViewClient() {
             @Override
@@ -250,26 +267,31 @@ public class App extends Application {
 
             @Override
             public void onPageFinished(final WebView view, String url) {
+                // Injeta javascript para fixar tamanho da div no layout da página
                 view.loadUrl("javascript:(function(){document.body.style.width='465px'})()");
 
                 // Delay de 200ms, suficiente para ser renderizada a página
                 new Handler().postDelayed(new Runnable() {
                     public void run() {
+                        // Salva um printscreen da página em um bitmap
                         Bitmap b = Bitmap.createBitmap(465, 465, Bitmap.Config.ARGB_8888);
                         Canvas c = new Canvas(b);
                         view.draw(c);
+
+                        // Salva o bitmap :)
                         File file = new File(
                                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                                "Check-in/checkin-" + game.getId() + ".png");
+                                "Checkin/checkin_" + game.getId() + ".jpg");
                         file.mkdirs();
                         if (file.exists()) file.delete();
                         try {
                             FileOutputStream out = new FileOutputStream(file);
-                            b.compress(Bitmap.CompressFormat.PNG, 90, out);
+                            b.compress(Bitmap.CompressFormat.JPEG, 80, out);
                             out.flush();
                             out.close();
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            // TODO: Tratar problema no salvamento do arquivo
+                            // e.printStackTrace();
                         }
                     }
                 }, 500);

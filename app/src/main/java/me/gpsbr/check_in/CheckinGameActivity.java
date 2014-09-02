@@ -188,6 +188,13 @@ public class CheckinGameActivity extends Activity {
             public void success(String html) {
                 App.Dialog.dismissProgress();
 
+                // Trata problemas de rede
+                if (html == null || html.equals("")) {
+                    App.Dialog.showAlert(CheckinGameActivity.this,
+                            getString(R.string.error_network), "Erro");
+                    return;
+                }
+
                 // Registra o checkin
                 if (in) card.checkin(game, checkedSector);
                 else card.checkout(game);
