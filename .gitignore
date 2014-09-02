@@ -1,0 +1,8 @@
+app
+build
+.git
+.gradle
+*.log
+.idea
+libs
+*.properties
