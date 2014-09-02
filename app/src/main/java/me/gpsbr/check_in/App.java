@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.media.MediaScannerConnection;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Handler;
@@ -289,6 +290,11 @@ public class App extends Application {
                             b.compress(Bitmap.CompressFormat.JPEG, 80, out);
                             out.flush();
                             out.close();
+
+                            // Disparado media scanner, porque por algum motivo não aparece o
+                            // comprovante na galeria
+                            MediaScannerConnection.scanFile(App.app,
+                                    new String[]{file.toString()}, null, null);
                         } catch (Exception e) {
                             // TODO: Tratar problema no salvamento do arquivo
                             // e.printStackTrace();
