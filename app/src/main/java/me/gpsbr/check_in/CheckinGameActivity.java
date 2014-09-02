@@ -12,6 +12,8 @@ import android.widget.Button;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 import com.parse.ParseAnalytics;
 
 import java.util.HashMap;
@@ -202,6 +204,18 @@ public class CheckinGameActivity extends Activity {
                 checkinAnalytics.put("mode", in ? "checkin" : "checkout");
                 if (in) checkinAnalytics.put("sector", checkedSector.name);
                 ParseAnalytics.trackEvent("checkin", checkinAnalytics);
+
+                // Google Analytics
+                Tracker t = ((App) CheckinGameActivity.this.getApplication()).getTracker(
+                        App.TrackerName.APP_TRACKER);
+                t.send(new HitBuilders.EventBuilder()
+                        .setCategory("mode")
+                        .setAction(in ? "checkin" : "checkout")
+                        .build());
+                t.send(new HitBuilders.EventBuilder()
+                        .setCategory("sector")
+                        .setAction(checkedSector.name)
+                        .build());
             }
         });
         httpClient.execute((Void) null);

@@ -20,6 +20,8 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import com.google.android.gms.analytics.GoogleAnalytics;
+import com.google.android.gms.analytics.Tracker;
 import com.parse.Parse;
 import com.parse.PushService;
 import com.squareup.okhttp.FormEncodingBuilder;
@@ -64,6 +66,14 @@ public class App extends Application {
     protected static List<Game> games = new ArrayList<Game>();
     protected static List<Card> cards = new ArrayList<Card>();
 
+    // Google Analytics
+    public enum TrackerName {
+        APP_TRACKER, // Tracker used only in this app.
+        GLOBAL_TRACKER, // Tracker used by all the apps from a company. eg: roll-up tracking.
+        ECOMMERCE_TRACKER, // Tracker used by all ecommerce transactions from a company.
+    }
+    HashMap<TrackerName, Tracker> mTrackers = new HashMap<TrackerName, Tracker>();
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -87,6 +97,23 @@ public class App extends Application {
                 "vg6KxhzclZgLc3eFlR8c0MSSd6LZCeJDQxmxLsrU");
         PushService.setDefaultPushCallback(this, LoginActivity.class);
     }
+
+    /**
+     * Tretas do Google Analytics
+     *
+     * @param trackerId ID da propriedade no analytics
+     * @return          Tracker
+     */
+    synchronized Tracker getTracker(TrackerName trackerId) {
+        if (!mTrackers.containsKey(trackerId)) {
+            GoogleAnalytics analytics = GoogleAnalytics.getInstance(this);
+            Tracker t = (trackerId == TrackerName.APP_TRACKER) ? analytics.newTracker("UA-42184575-3")
+                    : analytics.newTracker(R.xml.global_tracker);
+            mTrackers.put(trackerId, t);
+        }
+        return mTrackers.get(trackerId);
+    }
+
 
     /**
      * Proxy para exibir toasts no app
