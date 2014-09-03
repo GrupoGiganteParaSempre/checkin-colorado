@@ -612,8 +612,8 @@ header {
   background: rgba(255, 255, 255, 0.2);
   color: white;
 }
-#three-images {
-  padding: 4em 0 6em 0;
+.three-images {
+  padding: 0 0 4em 0;
 }
 .img-circle-div {
   display: inline;
@@ -624,7 +624,7 @@ header {
   *margin: 0 0.92830882%;
   text-align: center;
 }
-#three-images img {
+.three-images img {
   border-radius: 50%;
   max-width: 200px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
@@ -728,16 +728,16 @@ header {
   background: url(../images/slide4.jpg) repeat center center;
   opacity: .3;
 }
-#list {
-  padding: 4em 0 4em 0;
+.list {
+  padding: 4em 0 0em 0;
 }
-#list i {
+.list i {
   position: absolute;
 }
-#list h3 {
+.list h3 {
   margin: 0 0 20px 70px;
 }
-#list article p {
+.list article p {
   margin: 0 0 0 70px;
 }
 .list-row {
