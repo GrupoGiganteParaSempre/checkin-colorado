@@ -538,6 +538,16 @@ header {
   max-width: 600px;
   margin: auto;
 }
+.cta-container ul {
+  margin: 0em;
+}
+.cta-container ul li {
+  margin-left: .5em;
+  margin-right: .5em;
+  list-style-type: none;
+  display: inline-block;
+  vertical-align: top;
+}
 .cta-2 {
   border-bottom: none;
 }
