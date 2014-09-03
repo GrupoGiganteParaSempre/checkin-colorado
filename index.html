@@ -1,14 +1,11 @@
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:og="http://ogp.me/ns#"
-      xmlns:fb="http://www.facebook.com/2008/fbml">
-            
-
 <!DOCTYPE html>
 <!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
 <!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
 <!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
-    
+<!--[if gt IE 8]><!--> <html class="no-js"
+                             xmlns="http://www.w3.org/1999/xhtml"
+                             xmlns:og="http://ogp.me/ns#"
+                             xmlns:fb="http://www.facebook.com/2008/fbml"> <!--<![endif]-->
     <head>
         
         <meta charset="utf-8">
@@ -32,13 +29,14 @@
         <meta property="fb:app_id" content="317854388384589">
         <meta property="og:description" content="Para você nunca mais perder um jogo por ter esquecido de fazer o Check-in :-)">
         <meta property="og:email" content="contato@gpsbr.me">
-        <fb:like href="http://developers.facebook.com/" width="450" height="80">
+        <!-- <fb:like href="http://developers.facebook.com/" width="450" height="80"> -->
 
         <!-- CSS, Normalize First, minify for production -->
         <link rel="stylesheet" type='text/css' href="less/master.css"/>
         
         <!-- Web fonts -->
         <!-- <link href='http://fonts.googleapis.com/css?family=Lato:300,400,900' rel='stylesheet' type='text/css'> -->
+        <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet"/>
         <link href='less/lato.css' rel='stylesheet' type='text/css'>
         
         <!-- Icons from http://fontawesome.io/ -->
@@ -56,6 +54,19 @@
     </head>
 
     <body>
+
+        <!-- facebook widgets -->
+        <div id="fb-root"></div>
+        <script>(function(d, s, id) {
+          var js, fjs = d.getElementsByTagName(s)[0];
+          if (d.getElementById(id)) return;
+          js = d.createElement(s); js.id = id;
+          js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&appId=317854388384589&version=v2.0";
+          fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));</script>
+        
+        <!-- twitter widgets -->
+        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
         
         <!--[if lt IE 7]>
             <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chrome/‎">install Google Chrome</a> to experience this site.</p>
@@ -73,21 +84,9 @@
         
         <section class="call-to-action">
             <div class="cta-container cf">
-                <div class="twitter">
-                    <a href="https://twitter.com/share" class="twitter-share-button">Tweet</a>
-                    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
-                </div>
-                <div class="facebook">
-                    <div id="fb-root"></div>
-                    <script>(function(d, s, id) {
-                        var js, fjs = d.getElementsByTagName(s)[0];
-                        if (d.getElementById(id)) return;
-                        js = d.createElement(s); js.id = id;
-                        js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
-                        fjs.parentNode.insertBefore(js, fjs);
-                    }(document, 'script', 'facebook-jssdk'));</script>
-                    <div class="fb-like" data-layout="button_count" data-action="like" data-show-faces="false" data-share="false"></div>
-                </div>
+                <div class="fb-like" data-layout="box_count" data-action="like" data-show-faces="true" data-share="false"></div>
+                &nbsp;&nbsp;&nbsp;
+                <a href="https://twitter.com/share" class="twitter-share-button" data-count="vertical">Tweet</a>
             </div>
         </section>
         
@@ -231,6 +230,12 @@
         <!-- Footer -->
         <footer>
             <div class="container">
+                <div class="social-boat">
+                    <div class="facebook">
+                        Siga o Grupo Gigante Para Sempre no Facebook!<br>
+                        <div class="fb-follow" data-href="https://www.facebook.com/BeiraRioGiganteParaSempreSci" data-colorscheme="light" data-layout="standard" data-show-faces="true"></div>
+                    </div>
+                </div>
                 <div id="footer-text" class="small">
                 <p>&copy; Grupo Gigante Para Sempre</p>
                 </div>
