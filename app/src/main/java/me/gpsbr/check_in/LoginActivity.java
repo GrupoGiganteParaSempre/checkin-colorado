@@ -3,10 +3,15 @@ package me.gpsbr.check_in;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Html;
+import android.text.SpannableString;
 import android.text.TextUtils;
+import android.text.method.LinkMovementMethod;
+import android.text.util.Linkify;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -101,10 +106,7 @@ public class LoginActivity extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.action_about) {
-            Intent intent = new Intent(LoginActivity.this, AboutActivity.class);
-            startActivity(intent);
-        }
+        if (id == R.id.action_about) App.showAbout(this);
         return super.onOptionsItemSelected(item);
     }
 

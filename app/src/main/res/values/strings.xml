@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Check-in</string>
+    <string name="app_name">Check-in Colorado</string>
+    <string name="app_version">Versão 1.0.0</string>
+    <string name="app_author">Gustavo Seganfredo Farias</string>
 
     <!-- Itens do menu -->
     <string name="action_logout">Deslogar</string>
@@ -50,4 +52,7 @@
     <string name="url_receipt" formatted="false"><![CDATA[http://internacional.com.br/checkincolorado/checkincolorado_comprovante.php?cartao=%s&id_jogo=%s]]></string>
 
     <string name="error_network">Um erro ocorreu. Verifique se você está conectado à rede e tente novamente mais tarde.</string>
+
+    <string name="link_policy"><a href="http://checkin.gpsbr.me/policy">Política de Privacidade</a></string>
+    <string name="link_fanpage"><a href="http://gpsbr.me/fanpage">Curta nossa fanpage!</a></string>
 </resources>
