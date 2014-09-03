@@ -2,6 +2,7 @@ package me.gpsbr.check_in;
 
 import android.app.AlertDialog;
 import android.app.Application;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -13,12 +14,15 @@ import android.media.MediaScannerConnection;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Handler;
+import android.text.method.LinkMovementMethod;
 import android.util.Log;
+import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.analytics.GoogleAnalytics;
@@ -413,6 +417,17 @@ public class App extends Application {
     }
 
     /**
+     * Mostra a dialog de "sobre"
+     */
+    public static void showAbout(Context context) {
+        android.app.Dialog dialog = App.Dialog.show(context, R.layout.dialog_about, "Sobre");
+        ((TextView)dialog.findViewById(R.id.link_policy))
+                .setMovementMethod(LinkMovementMethod.getInstance());
+        ((TextView)dialog.findViewById(R.id.link_fanpage))
+                .setMovementMethod(LinkMovementMethod.getInstance());
+    }
+
+    /**
      * Retorna a lista de jogos
      * @return Lista de jogos
      */
@@ -496,6 +511,16 @@ public class App extends Application {
                 public void onClick(DialogInterface dialog, int id) {
                 }
             });
+        }
+
+        // Mesma coisa só que com content-view
+        public static android.app.Dialog show(Context context, int contentView, String title) {
+            android.app.Dialog dialog = new android.app.Dialog(context);
+            dialog.setContentView(contentView);
+            dialog.setCanceledOnTouchOutside(true);
+            dialog.setTitle(title);
+            dialog.show();
+            return dialog;
         }
     }
 

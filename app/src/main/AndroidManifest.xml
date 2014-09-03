@@ -42,11 +42,6 @@
             android:label="@string/title_activity_checkin" >
         </activity>
         <activity
-            android:name=".AboutActivity"
-            android:screenOrientation="portrait"
-            android:label="@string/title_activity_about" >
-        </activity>
-        <activity
             android:name=".CheckinGameActivity"
             android:screenOrientation="portrait"
             android:label="@string/title_activity_checkin_game"

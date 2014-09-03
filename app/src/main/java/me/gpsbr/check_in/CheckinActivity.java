@@ -75,8 +75,7 @@ public class CheckinActivity extends Activity {
             App.logout();
             finish();
         } else if (id == R.id.action_about) {
-            Intent intent = new Intent(this, AboutActivity.class);
-            startActivity(intent);
+            App.showAbout(this);
         }
         return super.onOptionsItemSelected(item);
     }
