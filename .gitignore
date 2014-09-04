@@ -21,3 +21,9 @@ gen/
 
 # Local configuration file (sdk path, etc)
 local.properties
+
+# logs
+*.log
+
+# Configurações do parse
+app/src/main/res/values/parse.xml

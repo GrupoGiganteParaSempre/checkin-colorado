@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Generated with http://android-holo-colors.com -->
+    <style name="EditTextCheckinWhite" parent="android:Widget.EditText">
+        <item name="android:background">@drawable/checkinwhite_edit_text_holo_dark</item>
+        <item name="android:textColor">#ffffff</item>
+        <item name="android:textColorHint">#ffffd1d5</item>
+    </style>
+
+    <style name="AutoCompleteTextViewCheckinWhite" parent="android:Widget.AutoCompleteTextView">
+        <item name="android:dropDownSelector">@drawable/checkinwhite_list_selector_holo_dark</item>
+        <item name="android:background">@drawable/checkinwhite_edit_text_holo_dark</item>
+        <item name="android:textColor">#ffffff</item>
+    </style>
+
+    <style name="CheckBoxCheckinWhite" parent="android:Widget.CompoundButton.CheckBox">
+        <item name="android:button">@drawable/checkinwhite_btn_check_holo_dark</item>
+    </style>
+
+    <style name="RadioButtonCheckinWhite" parent="android:Widget.CompoundButton.RadioButton">
+        <item name="android:button">@drawable/checkinwhite_btn_radio_holo_dark</item>
+    </style>
+
+    <style name="ButtonCheckinWhite" parent="android:Widget.Button">
+        <item name="android:background">@drawable/checkinwhite_btn_default_holo_dark</item>
+        <item name="android:minHeight">48dip</item>
+        <item name="android:minWidth">64dip</item>
+        <item name="android:textColor">#ffb00040</item>
+    </style>
+
+    <style name="ImageButtonCheckinWhite" parent="android:Widget.ImageButton">
+        <item name="android:background">@drawable/checkinwhite_btn_default_holo_dark</item>
+    </style>
+
+    <style name="SpinnerCheckinWhite" parent="android:Widget.Spinner">
+        <item name="android:background">@drawable/checkinwhite_spinner_background_holo_dark</item>
+        <item name="android:dropDownSelector">@drawable/checkinwhite_list_selector_holo_dark</item>
+    </style>
+
+    <style name="SpinnerDropDownItemCheckinWhite" parent="android:Widget.DropDownItem.Spinner">
+        <item name="android:checkMark">@drawable/checkinwhite_btn_radio_holo_dark</item>
+    </style>
+    <style name="TabCheckinWhite">
+        <item name="android:gravity">center_horizontal</item>
+        <item name="android:paddingLeft">16dip</item>
+        <item name="android:paddingRight">16dip</item>
+        <item name="android:background">@drawable/checkinwhite_tab_indicator_holo</item>
+        <item name="android:layout_width">0dip</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:minWidth">80dip</item>
+    </style>
+
+    <style name="TabTextCheckinWhite">
+        <item name="android:textColor">#ffffff</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+        <!-- v14 <item name="android:textAllCaps">true</item> -->
+        <item name="android:ellipsize">marquee</item>
+        <item name="android:maxLines">2</item>
+        <item name="android:maxWidth">180dip</item>
+    </style>
+
+    <style name="ProgressBarCheckinWhite" parent="android:Widget.ProgressBar.Horizontal">
+        <item name="android:progressDrawable">@drawable/checkinwhite_progress_horizontal_holo_dark</item>
+        <item name="android:indeterminateDrawable">@drawable/checkinwhite_progress_indeterminate_horizontal_holo_dark</item>
+        <item name="android:minHeight">16dip</item>
+        <item name="android:maxHeight">16dip</item>
+    </style>
+
+    <style name="SeekBarCheckinWhite" parent="android:Widget.SeekBar">
+        <item name="android:progressDrawable">@drawable/checkinwhite_scrubber_progress_horizontal_holo_dark</item>
+        <item name="android:indeterminateDrawable">@drawable/checkinwhite_scrubber_progress_horizontal_holo_dark</item>
+        <item name="android:minHeight">13dip</item>
+        <item name="android:maxHeight">13dip</item>
+        <item name="android:thumb">@drawable/checkinwhite_scrubber_control_selector_holo_dark</item>
+        <item name="android:thumbOffset">16dip</item>
+        <item name="android:paddingLeft">16dip</item>
+        <item name="android:paddingRight">16dip</item>
+    </style>
+
+    <style name="RatingBarCheckinWhite" parent="android:Widget.RatingBar">
+        <item name="android:progressDrawable">@drawable/checkinwhite_ratingbar_full_holo_dark</item>
+        <item name="android:indeterminateDrawable">@drawable/checkinwhite_ratingbar_full_holo_dark</item>
+    </style>
+
+    <style name="RatingBarBigCheckinWhite" parent="android:Widget.RatingBar">
+        <item name="android:progressDrawable">@drawable/checkinwhite_ratingbar_holo_dark</item>
+        <item name="android:indeterminateDrawable">@drawable/checkinwhite_ratingbar_holo_dark</item>
+        <item name="android:minHeight">35dip</item>
+        <item name="android:maxHeight">35dip</item>
+    </style>
+
+    <style name="RatingBarSmallCheckinWhite" parent="android:Widget.RatingBar">
+        <item name="android:progressDrawable">@drawable/checkinwhite_ratingbar_small_holo_dark</item>
+        <item name="android:indeterminateDrawable">@drawable/checkinwhite_ratingbar_small_holo_dark</item>
+        <item name="android:minHeight">16dip</item>
+        <item name="android:maxHeight">16dip</item>
+    </style>
+
+    <style name="ToggleCheckinWhite" parent="android:Widget.Button.Toggle">
+        <item name="android:background">@drawable/checkinwhite_btn_toggle_holo_dark</item>
+        <item name="android:minHeight">48dip</item>
+        <item name="android:textColor">#ffffff</item>
+    </style>
+
+    <style name="ListViewCheckinWhite" parent="android:Widget.ListView">
+        <item name="android:listSelector">@drawable/checkinwhite_list_selector_holo_dark</item>
+    </style>
+
+    <style name="ListViewCheckinWhite.White" parent="android:Widget.ListView.White">
+        <item name="android:listSelector">@drawable/checkinwhite_list_selector_holo_dark</item>
+    </style>
+
+    <style name="SpinnerItemCheckinWhite" parent="android:TextAppearance.Widget.TextView.SpinnerItem">
+        <item name="android:textColor">#ffffff</item>
+    </style>
+
+    <!-- Generated with http://jgilfelt.github.io/android-actionbarstylegenerator -->
+    <style name="ActionBar.Solid.Checkinwhite" parent="@android:style/Widget.Holo.Light.ActionBar.Solid.Inverse">
+        <item name="android:background">@drawable/ab_background_textured_checkinwhite</item>
+        <item name="android:backgroundStacked">@drawable/ab_stacked_solid_checkinwhite</item>
+        <item name="android:backgroundSplit">@drawable/ab_background_textured_checkinwhite</item>
+        <item name="android:progressBarStyle">@style/ProgressBar.Checkinwhite</item>
+    </style>
+    <style name="ActionBar.Transparent.Checkinwhite" parent="@android:style/Widget.Holo.ActionBar">
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:progressBarStyle">@style/ProgressBar.Checkinwhite</item>
+        <item name="android:titleTextStyle">@style/ActionBar.Transparent.TitleTextStyle.CheckinWhite</item>
+    </style>
+    <style name="ActionBar.Transparent.TitleTextStyle.CheckinWhite" parent="@android:style/TextAppearance.Holo.Widget.ActionBar.Title">
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+    <style name="PopupMenu.Checkinwhite" parent="@android:style/Widget.Holo.ListPopupWindow">
+        <item name="android:popupBackground">@drawable/menu_dropdown_panel_checkinwhite</item>
+    </style>
+    <style name="DropDownListView.Checkinwhite" parent="@android:style/Widget.Holo.ListView.DropDown">
+        <item name="android:listSelector">@drawable/selectable_background_checkinwhite</item>
+    </style>
+    <style name="ActionBarTabStyle.Checkinwhite" parent="@android:style/Widget.Holo.ActionBar.TabView">
+        <item name="android:background">@drawable/tab_indicator_ab_checkinwhite</item>
+    </style>
+    <style name="DropDownNav.Checkinwhite" parent="@android:style/Widget.Holo.Spinner">
+        <item name="android:background">@drawable/spinner_background_ab_checkinwhite</item>
+        <item name="android:popupBackground">@drawable/menu_dropdown_panel_checkinwhite</item>
+        <item name="android:dropDownSelector">@drawable/selectable_background_checkinwhite</item>
+    </style>
+    <style name="ProgressBar.Checkinwhite" parent="@android:style/Widget.Holo.ProgressBar.Horizontal">
+        <item name="android:progressDrawable">@drawable/progress_horizontal_checkinwhite</item>
+    </style>
+    <style name="ActionButton.CloseMode.Checkinwhite" parent="@android:style/Widget.Holo.ActionButton.CloseMode">
+        <item name="android:background">@drawable/btn_cab_done_checkinwhite</item>
+    </style>
+    <style name="Theme.Checkinwhite.Widget" parent="@android:style/Theme.Holo">
+        <item name="android:popupMenuStyle">@style/PopupMenu.Checkinwhite</item>
+        <item name="android:dropDownListViewStyle">@style/DropDownListView.Checkinwhite</item>
+    </style>
+
+</resources>
