@@ -6,9 +6,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -116,6 +118,16 @@ public class CheckinGameActivity extends Activity {
                     mSwitchCheckin.setChecked(false);
                     mButtonSectorSelection.setVisibility(View.GONE);
                 }
+
+                // Seta listener para mudanças no botão "vai ao jogo?"
+                mSwitchCheckin.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        // Mostra o resto do form em caso de sim, senao esconde
+                        boolean on = buttonView.isChecked();
+                        mButtonSectorSelection.setVisibility(on ? View.VISIBLE : View.GONE);
+                    }
+                });
             } else {
                 mCheckinEndedContainer.setVisibility(View.VISIBLE);
                 String text;
@@ -151,14 +163,6 @@ public class CheckinGameActivity extends Activity {
     // ------------------------------------------------------------------------------------- //
     // - Outros Métodos -------------------------------------------------------------------- //
     // ------------------------------------------------------------------------------------- //
-
-    /**
-     * Trata de mudanças de checkin / checkout no layout
-     */
-    public void onSwitchClicked(View view) {
-        boolean on = ((Switch) view).isChecked();
-        mButtonSectorSelection.setVisibility(on ? View.VISIBLE : View.GONE);
-    }
 
     /**
      * Trata da submissão do checkin/out no sistema do clube

@@ -145,7 +145,6 @@
                             android:track="@drawable/checkinthemered_switch_track_holo_light"
                             android:textOff="@string/yes"
                             android:textOn="@string/no"
-                            android:onClick="onSwitchClicked"
                             android:id="@+id/checkin_switch" />
                     </FrameLayout>
                 </LinearLayout>
