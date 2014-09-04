@@ -24,3 +24,6 @@ local.properties
 
 # logs
 *.log
+
+# Configurações do parse
+app/src/main/res/values/parse.xml

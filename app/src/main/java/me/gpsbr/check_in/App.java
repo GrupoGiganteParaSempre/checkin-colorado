@@ -101,9 +101,7 @@ public class App extends Application {
         client.setCookieHandler(coreCookieManager);
 
         // Initializing Parse
-        Parse.initialize(this,
-                "0V4fqB7pR03LwgQ1CMdXyyECAoHl5yLpPndQw64V",
-                "vg6KxhzclZgLc3eFlR8c0MSSd6LZCeJDQxmxLsrU");
+        Parse.initialize(this, getString(R.string.parse_app_id), getString(R.string.parse_app_key));
         PushService.setDefaultPushCallback(this, LoginActivity.class);
 
         // Garante a inscrição do user no canal "checkin"
