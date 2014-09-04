@@ -14,7 +14,6 @@ import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Handler;
 import android.text.method.LinkMovementMethod;
-import android.util.Log;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.WebSettings;
@@ -26,7 +25,6 @@ import android.widget.Toast;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.Tracker;
 import com.parse.Parse;
-import com.parse.ParseInstallation;
 import com.parse.PushService;
 import com.squareup.okhttp.FormEncodingBuilder;
 import com.squareup.okhttp.OkHttpClient;
@@ -71,6 +69,8 @@ public class App extends Application {
     protected static List<Game> games = new ArrayList<Game>();
     protected static List<Card> cards = new ArrayList<Card>();
 
+    protected static Set<String> parseSubscriptions;
+
     // Google Analytics
     public enum TrackerName {
         APP_TRACKER, // Tracker used only in this app.
@@ -106,12 +106,50 @@ public class App extends Application {
                 "vg6KxhzclZgLc3eFlR8c0MSSd6LZCeJDQxmxLsrU");
         PushService.setDefaultPushCallback(this, LoginActivity.class);
 
-        // Verifica a inscrição do user no canal "checkin"
-        Set<String> subscriptions = PushService.getSubscriptions(this);
-        if (!subscriptions.contains("checkin")) {
-            // Inscreve o manolo no canal caso ele ainda não esteja inscrito
-            PushService.subscribe(this, "checkin", LoginActivity.class);
-            // PushService.subscribe(App.app, "NOT_CHECKIN", LoginActivity.class);
+        // Garante a inscrição do user no canal "checkin"
+        parseSubscriptions = PushService.getSubscriptions(this);
+        parseSubscribe("checkin");
+    }
+
+    /**
+     * Inscreve o usuário em um canal do parse
+     *
+     * @param channel ID do canal para inscrever a pessoa
+     */
+    public static void parseSubscribe(String channel) {
+        manageParseSubscription(channel, true);
+    }
+
+    /**
+     * Desinscreve o usuário em um canal do parse
+     *
+     * @param channel ID do canal para desinscrever a pessoa
+     */
+    public static void parseUnsubscribe(String channel) {
+        manageParseSubscription(channel, false);
+    }
+
+    /**
+     * Gerencia inscrições em canais no parse
+     *
+     * @param channel ID do canal para inscrever a pessoa
+     * @param tuneIn  true pra ligar a inscrição no canal, false para desligar
+     */
+    protected static void manageParseSubscription(String channel, Boolean tuneIn) {
+        if (tuneIn && !parseSubscriptions.contains(channel)) {
+            PushService.subscribe(App.app, channel, LoginActivity.class);
+            if (channel == "checkin") {
+                // Checkin só é setado uma vez, então se estiver sendo setado é porque é a primeira
+                // vez que o usuário abre o celular. Assim, setamos "NOT_CHECKIN" também porque
+                // a princípio ele não fez checkin. Após se logar, caso ele já tenha feito login
+                // o app identifica e remove ele do canal
+                PushService.subscribe(App.app, "NOT_CHECKIN", LoginActivity.class);
+            }
+            parseSubscriptions = PushService.getSubscriptions(App.app);
+        }
+        if (!tuneIn && parseSubscriptions.contains(channel)) {
+            PushService.unsubscribe(App.app, channel);
+            parseSubscriptions = PushService.getSubscriptions(App.app);
         }
     }
 
@@ -130,7 +168,6 @@ public class App extends Application {
         }
         return mTrackers.get(trackerId);
     }
-
 
     /**
      * Proxy para exibir toasts no app
@@ -418,7 +455,12 @@ public class App extends Application {
             for (Card c : cards) {
                 for (Game g : games) {
                     Game.Sector sector = scrapper.getCheckin(c, g);
-                    if (sector != null) c.checkin(g, sector);
+                    if (sector != null) {
+                        c.checkin(g, sector);
+
+                        // O cara fez checkin, remove do canal NOT_CHECKIN (caso esteja ainda)
+                        parseUnsubscribe("NOT_CHECKIN");
+                    }
                 }
             }
         }
