@@ -53,6 +53,6 @@
 
     <string name="error_network">Um erro ocorreu. Verifique se você está conectado à rede e tente novamente mais tarde.</string>
 
-    <string name="link_policy"><a href="http://checkin.gpsbr.me/policy">Política de Privacidade</a></string>
+    <string name="link_policy"><a href="http://checkin.gpsbr.me/#policy">Política de Privacidade</a></string>
     <string name="link_fanpage"><a href="http://gpsbr.me/fanpage">Curta nossa fanpage!</a></string>
 </resources>

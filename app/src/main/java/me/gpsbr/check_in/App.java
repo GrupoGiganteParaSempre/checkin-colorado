@@ -2,7 +2,6 @@ package me.gpsbr.check_in;
 
 import android.app.AlertDialog;
 import android.app.Application;
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -16,7 +15,6 @@ import android.os.Environment;
 import android.os.Handler;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
-import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.WebSettings;
@@ -582,7 +580,6 @@ class HTTPClient extends AsyncTask<Void, Void, String> {
 
     @Override
     protected String doInBackground(Void... params) {
-        Log.d("checkin", "doinbackground");
         // building request
         Request.Builder builder = new Request.Builder().url(url);
 
@@ -610,7 +607,6 @@ class HTTPClient extends AsyncTask<Void, Void, String> {
 
     @Override
     protected void onPostExecute(final String html) {
-        Log.d("checkin", "postexecute");
         if (callback != null) callback.success(html);
     }
 
