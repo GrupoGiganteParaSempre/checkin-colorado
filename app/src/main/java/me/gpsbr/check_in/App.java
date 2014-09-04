@@ -599,7 +599,12 @@ class HTTPClient extends AsyncTask<Void, Void, String> {
 
         try {
             Response response = App.client.newCall(request).execute();
-            return new String(response.body().bytes(), "ISO-8859-1");
+            if (response.isSuccessful()) {
+                return new String(response.body().bytes(), "ISO-8859-1");
+            } else {
+                // Evita problemas de 404 ou 50x
+                return "";
+            }
         } catch (IOException e) {
             return "";
         }

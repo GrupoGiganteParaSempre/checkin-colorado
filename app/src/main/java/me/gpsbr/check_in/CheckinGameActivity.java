@@ -195,6 +195,13 @@ public class CheckinGameActivity extends Activity {
                     return;
                 }
 
+                // Trata problema do check-in já ter sido finalizado
+                if (html.contains("site foi finalizado") || html.contains("O prazo para o check-in referente")) {
+                    App.Dialog.showAlert(CheckinGameActivity.this,
+                            "Desculpe, mas o check-in já foi finalizado para este jogo", "Erro");
+                    return;
+                }
+
                 // Registra o checkin
                 if (in) card.checkin(game, checkedSector);
                 else card.checkout(game);
