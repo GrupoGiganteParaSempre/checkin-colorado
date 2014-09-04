@@ -206,12 +206,16 @@ public class CheckinGameActivity extends Activity {
                 if (in) card.checkin(game, checkedSector);
                 else card.checkout(game);
 
+                // Registra o checkin no push (removendo o user do channel "NOT_CHECKIN")
+                App.parseUnsubscribe("NOT_CHECKIN");
+
                 // Gera o recibo
                 App.printReceipt(card, game);
 
                 // Mostra mensagem de sucesso :)
                 String message = getString(R.string.checkin_sucessfull, (in ? "VAI" : "NÃO VAI"));
-                App.Dialog.showAlert(CheckinGameActivity.this, message, (in ? "Checkin" : "Checkout") + " efetuado");
+                App.Dialog.showAlert(CheckinGameActivity.this,
+                        message, (in ? "Checkin" : "Checkout") + " efetuado");
 
                 // Parse Analytics
                 Map<String, String> checkinAnalytics = new HashMap<String, String>();
