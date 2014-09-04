@@ -26,6 +26,7 @@ import android.widget.Toast;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.Tracker;
 import com.parse.Parse;
+import com.parse.ParseInstallation;
 import com.parse.PushService;
 import com.squareup.okhttp.FormEncodingBuilder;
 import com.squareup.okhttp.OkHttpClient;
@@ -47,6 +48,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Classe da aplicação.
@@ -103,6 +105,14 @@ public class App extends Application {
                 "0V4fqB7pR03LwgQ1CMdXyyECAoHl5yLpPndQw64V",
                 "vg6KxhzclZgLc3eFlR8c0MSSd6LZCeJDQxmxLsrU");
         PushService.setDefaultPushCallback(this, LoginActivity.class);
+
+        // Verifica a inscrição do user no canal "checkin"
+        Set<String> subscriptions = PushService.getSubscriptions(this);
+        if (!subscriptions.contains("checkin")) {
+            // Inscreve o manolo no canal caso ele ainda não esteja inscrito
+            PushService.subscribe(this, "checkin", LoginActivity.class);
+            // PushService.subscribe(App.app, "NOT_CHECKIN", LoginActivity.class);
+        }
     }
 
     /**

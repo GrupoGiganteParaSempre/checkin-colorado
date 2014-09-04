@@ -15,10 +15,12 @@ import android.widget.TextView;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 import com.parse.ParseAnalytics;
+import com.parse.PushService;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Controller da atividade "CheckinGame"
@@ -206,12 +208,20 @@ public class CheckinGameActivity extends Activity {
                 if (in) card.checkin(game, checkedSector);
                 else card.checkout(game);
 
+                // Registra o checkin no push (removendo o user do channel "NOT_CHECKIN")
+                // Verificamos antes se ele já não foi removido antes, para evitar retrabalho
+                Set<String> subscriptions = PushService.getSubscriptions(App.app);
+                if (subscriptions.contains("NOT_CHECKIN")) {
+                    PushService.unsubscribe(App.app, "NOT_CHECKIN");
+                }
+
                 // Gera o recibo
                 App.printReceipt(card, game);
 
                 // Mostra mensagem de sucesso :)
                 String message = getString(R.string.checkin_sucessfull, (in ? "VAI" : "NÃO VAI"));
-                App.Dialog.showAlert(CheckinGameActivity.this, message, (in ? "Checkin" : "Checkout") + " efetuado");
+                App.Dialog.showAlert(CheckinGameActivity.this,
+                        message, (in ? "Checkin" : "Checkout") + " efetuado");
 
                 // Parse Analytics
                 Map<String, String> checkinAnalytics = new HashMap<String, String>();
