@@ -16,8 +16,21 @@
     color: white;
     position: relative;
     background: #000;
-    background: url(../images/header-2.jpg) repeat center center;
 }
+
+#main-header:after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: url(../images/header-2.jpg) repeat center center;
+    background-size: cover;
+    opacity: .6;
+}
+
 
 #main-header .container {
     position: relative;
@@ -121,7 +134,8 @@ header {
     bottom: 0;
     left: 0;
     background: url(../images/mid-content.jpg) repeat center center;
-    opacity: .3;
+    opacity: .5;
+    background-size: cover;
 }
 
 #summary p {
