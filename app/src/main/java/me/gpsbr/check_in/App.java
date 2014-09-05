@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.media.MediaScannerConnection;
@@ -469,10 +471,19 @@ public class App extends Application {
      */
     public static void showAbout(Context context) {
         android.app.Dialog dialog = App.Dialog.show(context, R.layout.dialog_about, "Sobre");
+
+        String version = "?.0.0";
+        try {
+            PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+            version = pInfo.versionName;
+        } catch (PackageManager.NameNotFoundException ignored) {}
+
         ((TextView)dialog.findViewById(R.id.link_policy))
                 .setMovementMethod(LinkMovementMethod.getInstance());
         ((TextView)dialog.findViewById(R.id.link_fanpage))
                 .setMovementMethod(LinkMovementMethod.getInstance());
+        ((TextView)dialog.findViewById(R.id.about_version))
+                .setText(context.getString(R.string.about_version, version));
     }
 
     /**

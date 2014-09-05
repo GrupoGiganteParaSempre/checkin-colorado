@@ -9,8 +9,9 @@
     <string name="action_about">Sobre</string>
     <string name="action_settings">Settings</string>
 
-    <!-- AboutActivity -->
+    <!-- AboutDialog -->
     <string name="title_activity_about">Sobre</string>
+    <string name="about_version" formatted="false">Versao %s</string>
 
     <!-- LoginActivity -->
     <string name="url_login">http://internacional.com.br/checkincolorado/logar.php</string>
@@ -55,4 +56,5 @@
 
     <string name="link_policy"><a href="http://checkin.gpsbr.me/#policy">Política de Privacidade</a></string>
     <string name="link_fanpage"><a href="http://gpsbr.me/fanpage">Curta nossa fanpage!</a></string>
+
 </resources>
