@@ -165,7 +165,7 @@ public class LoginActivity extends Activity {
         View focusView = null;
 
         // Valida a senha
-        if (!TextUtils.isEmpty(password) && !validatePassword(password)) {
+        if (TextUtils.isEmpty(password) || !validatePassword(password)) {
             mPassword.setError(getString(R.string.error_invalid_password));
             focusView = mPassword;
             cancel = true;
@@ -249,6 +249,6 @@ public class LoginActivity extends Activity {
      * @return         true se a senha for válida, false do contrário
      */
     private boolean validatePassword(String password) {
-        return password.length() == 6;
+        return password.length() > 0;
     }
 }
