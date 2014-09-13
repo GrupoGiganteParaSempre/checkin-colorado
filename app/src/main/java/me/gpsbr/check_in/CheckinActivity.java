@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
@@ -89,6 +90,11 @@ public class CheckinActivity extends Activity {
             PendingIntent viewPendingIntent =
                     PendingIntent.getActivity(this, 0, viewIntent, 0);
 
+            // Build an intent for an action to view a map
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW);
+            PendingIntent mapPendingIntent =
+                    PendingIntent.getActivity(this, 0, mapIntent, 0);
+
             NotificationCompat.Builder notificationBuilder =
                     new NotificationCompat.Builder(this)
                             .setSmallIcon(R.drawable.ic_launcher)
@@ -96,7 +102,9 @@ public class CheckinActivity extends Activity {
                                     getResources(), R.drawable.inter_x_botafogo))
                             // .setContentTitle("Check-in")
                             .setContentText("Check-in aberto para Inter x Botafogo!")
-                            .setContentIntent(viewPendingIntent);
+                            .setContentIntent(viewPendingIntent)
+                            .addAction(R.drawable.ic_launcher,
+                                "Fazer check-in", mapPendingIntent);
 
             // Get an instance of the NotificationManager service
             NotificationManagerCompat notificationManager =
