@@ -1,8 +1,12 @@
 package me.gpsbr.check_in;
 
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,6 +30,7 @@ import java.util.List;
 public class CheckinActivity extends Activity {
 
     public final static String EXTRA_GAME_ID = "me.gpsbr.checkin.GAME_ID";
+    public final static String EXTRA_EVENT_ID = "me.gpsbr.checkin.EVENT_ID";
 
     // UI Refs
     protected ListView mGameList;
@@ -76,6 +81,29 @@ public class CheckinActivity extends Activity {
             finish();
         } else if (id == R.id.action_about) {
             App.showAbout(this);
+        } else if (id == R.id.action_notify) {
+            int notificationId = 001;
+            // Build intent for notification content
+            Intent viewIntent = new Intent(this, CheckinActivity.class);
+            viewIntent.putExtra(EXTRA_EVENT_ID, "0001");
+            PendingIntent viewPendingIntent =
+                    PendingIntent.getActivity(this, 0, viewIntent, 0);
+
+            NotificationCompat.Builder notificationBuilder =
+                    new NotificationCompat.Builder(this)
+                            .setSmallIcon(R.drawable.ic_launcher)
+                            .setLargeIcon(BitmapFactory.decodeResource(
+                                    getResources(), R.drawable.inter_x_botafogo))
+                            // .setContentTitle("Check-in")
+                            .setContentText("Check-in aberto para Inter x Botafogo!")
+                            .setContentIntent(viewPendingIntent);
+
+            // Get an instance of the NotificationManager service
+            NotificationManagerCompat notificationManager =
+                    NotificationManagerCompat.from(this);
+
+            // Build the notification and issues it with notification manager.
+            notificationManager.notify(notificationId, notificationBuilder.build());
         }
         return super.onOptionsItemSelected(item);
     }

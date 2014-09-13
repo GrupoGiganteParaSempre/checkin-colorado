@@ -1,6 +1,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="me.gpsbr.check_in.CheckinActivity" >
+    <item android:id="@+id/action_notify"
+        android:icon="@drawable/ic_action_next_item"
+        android:title="@string/action_about"
+        android:showAsAction="always" />
     <item android:id="@+id/action_about"
         android:icon="@drawable/ic_action_about"
         android:title="@string/action_about"

@@ -87,7 +87,6 @@
     <orderEntry type="library" exported="" name="html2image-0.9" level="project" />
     <orderEntry type="library" exported="" name="okio-1.0.0" level="project" />
     <orderEntry type="library" exported="" name="support-annotations-20.0.0" level="project" />
-    <orderEntry type="library" exported="" name="appcompat-v7-20.0.0" level="project" />
   </component>
 </module>
 
