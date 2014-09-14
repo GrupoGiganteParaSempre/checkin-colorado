@@ -46,6 +46,8 @@ public class CheckinGameActivity extends Activity {
     protected Game game;
     protected Card card;
 
+    protected int gameId;
+
     // UI references
     protected Button mButtonSectorSelection;
     protected Button mButtonConfirm;
@@ -84,8 +86,55 @@ public class CheckinGameActivity extends Activity {
 
         // Inicializaçao da UI
         Intent intent = getIntent();
-        int gameId = intent.getIntExtra(CheckinActivity.EXTRA_GAME_ID, 0);
+        gameId = intent.getIntExtra(CheckinActivity.EXTRA_GAME_ID, 0);
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        buildInterface();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putInt("gameId", gameId);
+        App.saveState(savedInstanceState);
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        gameId = savedInstanceState.getInt("gameId");
+        App.restoreState(savedInstanceState);
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        overridePendingTransition(R.anim.activity_slide_in_left, R.anim.activity_slide_out_right);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            // Respond to the action bar's Up/Home button
+            case android.R.id.home:
+                finish();
+                overridePendingTransition(R.anim.activity_slide_in_left, R.anim.activity_slide_out_right);
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    // ------------------------------------------------------------------------------------- //
+    // - Outros Métodos -------------------------------------------------------------------- //
+    // ------------------------------------------------------------------------------------- //
+
+    /**
+     * Monta a interface
+     */
+    private void buildInterface() {
         game = App.getGame(gameId);
         ((TextView) findViewById(R.id.game_home)).setText(game.getHome());
         ((TextView) findViewById(R.id.game_away)).setText(game.getAway());
@@ -141,28 +190,6 @@ public class CheckinGameActivity extends Activity {
             }
         }
     }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        overridePendingTransition(R.anim.activity_slide_in_left, R.anim.activity_slide_out_right);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            // Respond to the action bar's Up/Home button
-            case android.R.id.home:
-                finish();
-                overridePendingTransition(R.anim.activity_slide_in_left, R.anim.activity_slide_out_right);
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    // ------------------------------------------------------------------------------------- //
-    // - Outros Métodos -------------------------------------------------------------------- //
-    // ------------------------------------------------------------------------------------- //
 
     /**
      * Trata da submissão do checkin/out no sistema do clube
