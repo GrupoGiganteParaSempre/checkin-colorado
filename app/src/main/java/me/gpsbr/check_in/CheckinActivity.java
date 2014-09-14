@@ -3,6 +3,7 @@ package me.gpsbr.check_in;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -12,6 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,7 +34,7 @@ public class CheckinActivity extends Activity {
     protected TextView mCheckinClosedMessage;
 
     // Data refs
-    private List<Game> games;
+    private ArrayList<Game> games;
 
     // ------------------------------------------------------------------------------------- //
     // - Métodos da Atividade -------------------------------------------------------------- //
@@ -48,7 +50,50 @@ public class CheckinActivity extends Activity {
         mCheckinClosedMessage = (TextView) findViewById(R.id.checkin_closed_message);
 
         games = App.getGameList();
+        Log.d(App.TAG, "Activity::onCreate");
 
+        buildInterface();
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(App.TAG, "Activity::onStart");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(App.TAG, "Activity::onResume");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(App.TAG, "Activity::onPause");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(App.TAG, "Activity::onStop");
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+        Log.d(App.TAG, "Activity::onSaveInstanceState");
+        // savedInstanceState.putParcelableArrayList("games", games);
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        Log.d(App.TAG, "Activity::onRestoreInstanceState");
+        super.onRestoreInstanceState(savedInstanceState);
+        // games = savedInstanceState.getParcelableArrayList("games");
+    }
+
+    private void buildInterface() {
         if (games.isEmpty()) {
             // Checkin fechado, esconde a lista de jogos e mostra mensagem
             mCheckinClosedMessage.setVisibility(View.VISIBLE);
