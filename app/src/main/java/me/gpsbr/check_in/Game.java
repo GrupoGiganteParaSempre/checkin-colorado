@@ -1,5 +1,9 @@
 package me.gpsbr.check_in;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,7 +16,7 @@ import java.util.List;
  * @author   Gustavo Seganfredo <gustavosf@gmail.com>
  * @since    1.0
  */
-public class Game {
+public class Game implements Parcelable {
     private String id;
     private String home;
     private String away;
@@ -34,6 +38,45 @@ public class Game {
         this.tournament = tournament;
     }
 
+    /* ********************* */
+    /* ** Parcelling part ** */
+    /* ********************* */
+
+    public Game (Parcel parcel) {
+        String[] dataS = new String[6]; parcel.readStringArray(dataS);
+        boolean[] dataB = new boolean[1]; parcel.readBooleanArray(dataB);
+        parcel.readTypedList(sectors, Sector.CREATOR);
+
+        this.id = dataS[0];
+        this.home = dataS[1];
+        this.away = dataS[2];
+        this.venue = dataS[3];
+        this.date = dataS[4];
+        this.tournament = dataS[5];
+        this.checkinOpen = dataB[0];
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeStringArray(new String[] { id, home, away, venue, date, tournament });
+        parcel.writeBooleanArray(new boolean[] { checkinOpen });
+        parcel.writeTypedList(sectors);
+    }
+
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+        public Game createFromParcel(Parcel in) {
+            return new Game(in);
+        }
+        public Game[] newArray(int size) {
+            return new Game[size];
+        }
+    };
+
     /**
      * Model de um setor
      * Esta classe modela um setor. Ela registra o ID, nome e portões de acesso deste setor.
@@ -41,7 +84,7 @@ public class Game {
      * @author   Gustavo Seganfredo <gustavosf@gmail.com>
      * @since    1.0
      */
-    public static class Sector {
+    public static class Sector implements Parcelable {
         public String id;
         public String name;
         public String gates;
@@ -50,6 +93,35 @@ public class Game {
             this.name = App.Utils.capitalizeWords(name);
             this.gates = App.Utils.capitalizeWords(gates);
         }
+
+        /* ********************* */
+        /* ** Parcelling part ** */
+        /* ********************* */
+
+        public Sector(Parcel parcel) {
+            String[] data = new String[3];
+            parcel.readStringArray(data);
+            this.id = data[0];
+            this.name = data[1];
+            this.gates = data[2];
+        }
+
+        @Override
+        public int describeContents() { return 0; }
+
+        @Override
+        public void writeToParcel(Parcel parcel, int i) {
+            parcel.writeStringArray(new String[] { id, name, gates });
+        }
+
+        public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+            public Sector createFromParcel(Parcel in) {
+                return new Sector(in);
+            }
+            public Sector[] newArray(int size) {
+                return new Sector[size];
+            }
+        };
     }
 
     /**

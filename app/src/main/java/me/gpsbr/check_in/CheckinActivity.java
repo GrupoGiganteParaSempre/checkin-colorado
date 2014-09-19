@@ -3,6 +3,7 @@ package me.gpsbr.check_in;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -12,6 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,7 +34,7 @@ public class CheckinActivity extends Activity {
     protected TextView mCheckinClosedMessage;
 
     // Data refs
-    private List<Game> games;
+    private ArrayList<Game> games;
 
     // ------------------------------------------------------------------------------------- //
     // - Métodos da Atividade -------------------------------------------------------------- //
@@ -46,19 +48,25 @@ public class CheckinActivity extends Activity {
         // Inicialização das referências de UI
         mGameList = (ListView) findViewById(R.id.game_list);
         mCheckinClosedMessage = (TextView) findViewById(R.id.checkin_closed_message);
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
         games = App.getGameList();
+        buildInterface();
+    }
 
-        if (games.isEmpty()) {
-            // Checkin fechado, esconde a lista de jogos e mostra mensagem
-            mCheckinClosedMessage.setVisibility(View.VISIBLE);
-            mGameList.setVisibility(View.GONE);
-        } else {
-            // Monta lista de jogos
-            ArrayAdapter<Game> adapter = new GameListAdapter();
-            mGameList.setAdapter(adapter);
-            registerClickCallback();
-        }
+    @Override
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+        App.saveState(savedInstanceState);
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        App.restoreState(savedInstanceState);
     }
 
     @Override
@@ -83,6 +91,22 @@ public class CheckinActivity extends Activity {
     // ------------------------------------------------------------------------------------- //
     // - Outros Métodos -------------------------------------------------------------------- //
     // ------------------------------------------------------------------------------------- //
+
+    /**
+     * Gera a interface, populando a lista de jogos com os jogos
+     */
+    private void buildInterface() {
+        if (games.isEmpty()) {
+            // Checkin fechado, esconde a lista de jogos e mostra mensagem
+            mCheckinClosedMessage.setVisibility(View.VISIBLE);
+            mGameList.setVisibility(View.GONE);
+        } else {
+            // Monta lista de jogos
+            ArrayAdapter<Game> adapter = new GameListAdapter();
+            mGameList.setAdapter(adapter);
+            registerClickCallback();
+        }
+    }
 
     /**
      * Callback para quando se clica em um jogo da lista

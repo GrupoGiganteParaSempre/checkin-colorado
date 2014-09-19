@@ -11,6 +11,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.media.MediaScannerConnection;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.text.method.LinkMovementMethod;
@@ -66,8 +67,8 @@ public class App extends Application {
 
     public static OkHttpClient client;
 
-    protected static List<Game> games = new ArrayList<Game>();
-    protected static List<Card> cards = new ArrayList<Card>();
+    protected static ArrayList<Game> games = new ArrayList<Game>();
+    protected static ArrayList<Card> cards = new ArrayList<Card>();
 
     protected static Set<String> parseSubscriptions;
 
@@ -107,6 +108,28 @@ public class App extends Application {
         // Garante a inscrição do user no canal "checkin"
         parseSubscriptions = PushService.getSubscriptions(this);
         parseSubscribe("checkin");
+    }
+
+    /**
+     * Salva o estado do app.
+     * Resumidamente, salva os jogos e os cartões, porque o resto ele regenera no onCreate
+     *
+     * @param savedInstanceState Instância do estado
+     */
+    public static void saveState(Bundle savedInstanceState) {
+        savedInstanceState.putParcelableArrayList("games", games);
+        savedInstanceState.putParcelableArrayList("cards", cards);
+    }
+
+    /**
+     * Recupera o estado do app.
+     * Resumidamente, recupera os jogos e os cartões, porque o resto ele regenera no onCreate
+     *
+     * @param savedInstanceState Instância do estado
+     */
+    public static void restoreState(Bundle savedInstanceState) {
+        games = savedInstanceState.getParcelableArrayList("games");
+        cards = savedInstanceState.getParcelableArrayList("cards");
     }
 
     /**
@@ -361,8 +384,8 @@ public class App extends Application {
             this.dom = Jsoup.parse(html);
         }
 
-        public List<Game> getGames() {
-            List<Game> games = new ArrayList<Game>();
+        public ArrayList<Game> getGames() {
+            ArrayList<Game> games = new ArrayList<Game>();
 
             Elements gameTitles = dom.select("td.SOCIO_destaque_titulo > strong");
             if (!gameTitles.isEmpty()) for (Element gameTitle : gameTitles) {
@@ -410,11 +433,11 @@ public class App extends Application {
             return game;
         }
 
-        public List<Card> getCards() {
+        public ArrayList<Card> getCards() {
             Element container = dom.select("td.SOCIO_destaque_titulo > strong").first().parent();
             Elements cardSpans = container.select(".blocodecartao .SOCIO_texto_destaque_titulo2");
 
-            List<Card> cards = new ArrayList<Card>();
+            ArrayList<Card> cards = new ArrayList<Card>();
             for (Element cardElement : cardSpans) {
                 String[] cardInfo = cardElement.text().split("-");
                 Card card = new Card(cardInfo[0].split(" ")[1], cardInfo[1]);
@@ -479,7 +502,7 @@ public class App extends Application {
      * Retorna a lista de jogos
      * @return Lista de jogos
      */
-    public static List<Game> getGameList() {
+    public static ArrayList<Game> getGameList() {
         return games;
     }
 
@@ -487,7 +510,7 @@ public class App extends Application {
      * Retorna a lista de cartões
      * @return Lista de cartões
      */
-    public static List<Card> getCards() { return cards; }
+    public static ArrayList<Card> getCards() { return cards; }
 
     /**
      * Returns the game
