@@ -1,5 +1,9 @@
 package me.gpsbr.check_in;
 
+import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,7 +15,7 @@ import java.util.Map;
  * @author   Gustavo Seganfredo <gustavosf@gmail.com>
  * @since    1.0
  */
-public class Card {
+public class Card implements Parcelable {
 
     protected String id;
     protected String associationType;
@@ -25,6 +29,54 @@ public class Card {
         this.associationType = associationType;
         this.checkin = new HashMap<String, Game.Sector>();
     }
+
+    /* ********************* */
+    /* ** Parcelling part ** */
+    /* ********************* */
+
+    public Card(Parcel parcel) {
+        this.id = parcel.readString();
+        this.associationType = parcel.readString();
+
+        Bundle b = parcel.readBundle();
+        for (String k : b.keySet()) {
+            this.checkinAvailable.put(k, b.getBoolean(k));
+        }
+
+        b = parcel.readBundle();
+        for (String k : b.keySet()) {
+            this.checkin.put(k, (Game.Sector)b.getParcelable(k));
+        }
+    }
+
+    @Override
+    public int describeContents() { return 0; }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(id);
+        parcel.writeString(associationType);
+
+        Bundle b = new Bundle();
+        for (Map.Entry<String, Boolean> e : checkinAvailable.entrySet()) {
+            b.putBoolean(e.getKey(), e.getValue());
+        }
+        parcel.writeBundle(b);
+
+        b = new Bundle();
+        for (Map.Entry<String, Game.Sector> e : checkin.entrySet()) {
+            b.putParcelable(e.getKey(), e.getValue());
+        }
+    }
+
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+        public Card createFromParcel(Parcel in) {
+            return new Card(in);
+        }
+        public Card[] newArray(int size) {
+            return new Card[size];
+        }
+    };
 
     /**
      * Retorna se um cartão fez checkin para um determinado jogo
