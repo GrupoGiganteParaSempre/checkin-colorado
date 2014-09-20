@@ -239,17 +239,12 @@ public class CheckinGameActivity extends Activity {
             return;
         }
 
-        // Submete o formulário
-        Map<String, String> postValues = new HashMap<String, String>();
-        postValues.put("id_jogo", game.getId());
-        postValues.put("cartao", card.getId());
-        postValues.put("opcao", in ? FORM_CHECKIN_ID : FORM_CHECKOUT_ID);
-        postValues.put("setor", in ? checkedSector.id : "1");
-
         App.Dialog.showProgress(this, "Efetuando " + (in ? "Checkin" : "Checkout") + "...");
 
         // Faz o checkin rodando em background
-        JSONClient jsonClient = new JSONClient(CHECKIN_URL, postValues, new JSONClientCallbackInterface() {
+        String url = "http://www.internacional.com.br/checkin/public/checkin/padrao?operacao=100&setor=" + checkedSector.id;
+        Log.d(App.TAG, url);
+        (new JSONClient(url, new JSONClientCallbackInterface() {
             @Override
             public void success(JSONObject json) {
                 App.Dialog.dismissProgress();
@@ -262,11 +257,12 @@ public class CheckinGameActivity extends Activity {
                 }
 
                 // Trata problema do check-in já ter sido finalizado
-//                if (html.contains("site foi finalizado") || html.contains("O prazo para o check-in referente")) {
-//                    App.Dialog.showAlert(CheckinGameActivity.this,
-//                            "Desculpe, mas o check-in já foi finalizado para este jogo", "Erro");
-//                    return;
-//                }
+                // TODO : Rever isso aqui
+                // if (html.contains("site foi finalizado") || html.contains("O prazo para o check-in referente")) {
+                //     App.Dialog.showAlert(CheckinGameActivity.this,
+                //             "Desculpe, mas o check-in já foi finalizado para este jogo", "Erro");
+                //     return;
+                // }
 
                 // Registra o checkin
                 if (in) card.checkin(game, checkedSector);
@@ -276,33 +272,32 @@ public class CheckinGameActivity extends Activity {
                 App.parseUnsubscribe("NOT_CHECKIN");
 
                 // Gera o recibo
-                App.printReceipt(card, game);
+//                App.printReceipt(card, game);
 
                 // Mostra mensagem de sucesso :)
                 String message = getString(R.string.checkin_sucessfull, (in ? "VAI" : "NÃO VAI"));
                 App.Dialog.showAlert(CheckinGameActivity.this,
                         message, (in ? "Checkin" : "Checkout") + " efetuado");
 
-                // Parse Analytics
-                Map<String, String> checkinAnalytics = new HashMap<String, String>();
-                checkinAnalytics.put("mode", in ? "checkin" : "checkout");
-                if (in) checkinAnalytics.put("sector", checkedSector.name);
-                ParseAnalytics.trackEvent("checkin", checkinAnalytics);
-
-                // Google Analytics
-                Tracker t = ((App) CheckinGameActivity.this.getApplication()).getTracker(
-                        App.TrackerName.APP_TRACKER);
-                t.send(new HitBuilders.EventBuilder()
-                        .setCategory("mode")
-                        .setAction(in ? "checkin" : "checkout")
-                        .build());
-                t.send(new HitBuilders.EventBuilder()
-                        .setCategory("sector")
-                        .setAction(checkedSector.name)
-                        .build());
+//                // Parse Analytics
+//                Map<String, String> checkinAnalytics = new HashMap<String, String>();
+//                checkinAnalytics.put("mode", in ? "checkin" : "checkout");
+//                if (in) checkinAnalytics.put("sector", checkedSector.name);
+//                ParseAnalytics.trackEvent("checkin", checkinAnalytics);
+//
+//                // Google Analytics
+//                Tracker t = ((App) CheckinGameActivity.this.getApplication()).getTracker(
+//                        App.TrackerName.APP_TRACKER);
+//                t.send(new HitBuilders.EventBuilder()
+//                        .setCategory("mode")
+//                        .setAction(in ? "checkin" : "checkout")
+//                        .build());
+//                t.send(new HitBuilders.EventBuilder()
+//                        .setCategory("sector")
+//                        .setAction(checkedSector.name)
+//                        .build());
             }
-        });
-        jsonClient.execute((Void) null);
+        })).execute((Void) null);
     }
 
     /**
