@@ -407,7 +407,6 @@ public class App extends Application {
         }
 
         public ArrayList<Card> getCards() {
-            Log.d(App.TAG, json.toString());
             ArrayList<Card> cards = new ArrayList<Card>();
             JSONObject cardList = json.optJSONObject("cartoes");
             Iterator<String> keys = cardList.keys();
@@ -500,10 +499,17 @@ public class App extends Application {
     public static ArrayList<Card> getCards() { return cards; }
 
     /**
-     * Returns the game
+     * Busca por um jogo
      */
     public static Game getGame(int gameId) {
         return games.get(gameId);
+    }
+
+    /**
+     * Busca por um cartão
+     */
+    public static Card getCard(int cardId) {
+        return cards.get(cardId);
     }
 
 

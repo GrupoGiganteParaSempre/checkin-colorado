@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -98,13 +99,28 @@ public class CheckinCardActivity extends Activity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.checkin, menu);
+        return true;
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
         switch (item.getItemId()) {
             // Respond to the action bar's Up/Home button
             case android.R.id.home:
                 finish();
                 overridePendingTransition(R.anim.activity_slide_in_left, R.anim.activity_slide_out_right);
-                return true;
+                break;
+            case R.id.action_logout:
+                App.logout();
+                finish();
+                break;
+            case R.id.action_about:
+                App.showAbout(this);
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -117,30 +133,32 @@ public class CheckinCardActivity extends Activity {
      * Gera a interface, populando a lista de jogos com os jogos
      */
     private void buildInterface() {
-        Log.d(App.TAG, "buildInterface start");
         game = App.getGame(gameId);
 
         if (App.cards.isEmpty()) {
+            // Busca no servidor a lista de cartões do vivente
             mProgress.setVisibility(View.VISIBLE);
-            Log.d(App.TAG, "buildInterface cards empty");
             String url = "http://www.internacional.com.br/checkin/public/index/jogo?id=" + game.getId();
-            Log.d(App.TAG, "buildInterface url "+url);
             (new JSONClient(url, new JSONClientCallbackInterface() {
                 @Override
                 public void success(JSONObject json) {
-                    App.cards = (new App.Scrapper(json)).getCards();
-                    Log.d(App.TAG, App.cards.toString());
                     mProgress.setVisibility(View.GONE);
-                    buildInterface();
+                    if (json.optString("erro").equals("")) {
+                        // Caso nao retorne nenhuma mensagem de erro, e porque possui cartoes
+                        // elegiveis para check-in. Prossegue exibindo a interface
+                        App.cards = (new App.Scrapper(json)).getCards();
+                        buildInterface();
+                    }
+                    else
+                    {
+                        // Trata o caso de a pessoa não possuir cartões elegíveis para check-in
+                        mCheckinClosedMessage.setText(json.optString("erro"));
+                        mCheckinClosedMessage.setVisibility(View.VISIBLE);
+                    }
                 }
             })).execute((Void) null);
-
-            // Nenhum cartão disponível
-            // mCheckinClosedMessage.setVisibility(View.VISIBLE);
-            // mCardList.setVisibility(View.GONE);
         } else {
-            Log.d(App.TAG, "buildInterface building card list");
-            // Monta lista de cartões
+            // Monta lista de cartões na interface
             ArrayAdapter<Card> adapter = new CardListAdapter();
             mCardList.setVisibility(View.VISIBLE);
             mCardList.setAdapter(adapter);

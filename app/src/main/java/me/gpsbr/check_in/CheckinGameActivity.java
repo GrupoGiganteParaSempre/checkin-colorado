@@ -6,6 +6,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -40,15 +42,14 @@ import java.util.Map;
  */
 public class CheckinGameActivity extends Activity {
 
-    // Ids do Checkin / Checkout conforme formulário
-    private static final String FORM_CHECKIN_ID = "1";
-    private static final String FORM_CHECKOUT_ID = "2";
-    private static final String CHECKIN_URL = "http://internacional.com.br/checkincolorado/checkincolorado_res.php";
-
-    protected Game game;
-    protected Card card;
+    protected final String FORM_CHECKIN_ID = "1";
+    protected final String FORM_CHECKOUT_ID = "2";
+    protected final String CHECKIN_URL= "http://terra";
 
     protected int gameId;
+    protected Game game;
+    protected int cardId;
+    protected Card card;
 
     // UI references
     protected Button mButtonSectorSelection;
@@ -57,6 +58,7 @@ public class CheckinGameActivity extends Activity {
     protected View mViewCheckin;
     protected View mCheckinUnavailableMessage;
     protected View mCheckinEndedContainer;
+    protected View mProgress;
     protected TextView mCheckinEndedMessage;
 
     protected Game.Sector checkedSector;
@@ -85,10 +87,12 @@ public class CheckinGameActivity extends Activity {
         mCheckinEndedContainer = findViewById(R.id.checkin_ended_container);
         mButtonConfirm = (Button)findViewById(R.id.button_confirmation);
         mCheckinEndedMessage = (TextView)findViewById(R.id.checkin_ended_message);
+        mProgress = findViewById(R.id.progress);
 
         // Inicializaçao da UI
         Intent intent = getIntent();
-        gameId = intent.getIntExtra(CheckinActivity.EXTRA_GAME_ID, 0);
+        gameId = intent.getIntExtra(CheckinCardActivity.EXTRA_GAME_ID, 0);
+        cardId = intent.getIntExtra(CheckinCardActivity.EXTRA_CARD_ID, 0);
     }
 
     @Override
@@ -100,6 +104,7 @@ public class CheckinGameActivity extends Activity {
     @Override
     protected void onSaveInstanceState(Bundle savedInstanceState) {
         savedInstanceState.putInt("gameId", gameId);
+        savedInstanceState.putInt("cardId", cardId);
         App.saveState(savedInstanceState);
         super.onSaveInstanceState(savedInstanceState);
     }
@@ -108,6 +113,7 @@ public class CheckinGameActivity extends Activity {
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         gameId = savedInstanceState.getInt("gameId");
+        cardId = savedInstanceState.getInt("cardId");
         App.restoreState(savedInstanceState);
     }
 
@@ -118,13 +124,28 @@ public class CheckinGameActivity extends Activity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.checkin, menu);
+        return true;
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
         switch (item.getItemId()) {
             // Respond to the action bar's Up/Home button
             case android.R.id.home:
                 finish();
                 overridePendingTransition(R.anim.activity_slide_in_left, R.anim.activity_slide_out_right);
-                return true;
+                break;
+            case R.id.action_logout:
+                App.logout();
+                finish();
+                break;
+            case R.id.action_about:
+                App.showAbout(this);
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -136,68 +157,72 @@ public class CheckinGameActivity extends Activity {
     /**
      * Monta a interface
      */
-    private final void buildInterface() {
+    private void buildInterface() {
         game = App.getGame(gameId);
+        card = App.getCard(cardId);
+
+        mProgress.setVisibility(View.VISIBLE);
         ((TextView) findViewById(R.id.game_home)).setText(game.getHome());
         ((TextView) findViewById(R.id.game_away)).setText(game.getAway());
         ((TextView) findViewById(R.id.game_venue)).setText(game.getVenue());
         ((TextView) findViewById(R.id.game_date)).setText(game.getDate());
         ((TextView) findViewById(R.id.game_tournament)).setText(game.getTournament());
 
-        ArrayList<Card> cards = App.cards;
+        String url = "http://www.internacional.com.br/checkin/public/checkin/opcoes?cartao=" +
+                card.getId();
+        (new JSONClient(url, new JSONClientCallbackInterface() {
+            @Override
+            public void success(JSONObject json) {
+                Log.d(App.TAG, json.toString());
+                JSONObject status = json.optJSONObject("checkinStatus");
+                if (status != null) {
+                    Log.d(App.TAG, "entrou");
+                    // Caso um check-in já tenha sido feito, registra o checkin aqui também
+                    Game.Sector sector = game.findSector(status.optString("codigosetor"));
+                    card.checkin(game, sector);
+                }
+                mProgress.setVisibility(View.GONE);
+                buildInterface2();
+            }
+        })).execute((Void) null);
+    }
 
-        if (cards.isEmpty()) {
-            // mCheckinUnavailableMessage.setVisibility(View.VISIBLE);
-            String url = "http://www.internacional.com.br/checkin/public/index/jogo?id=" + game.getId();
-            new JSONClient(url, new JSONClientCallbackInterface() {
+    private void buildInterface2() {
+        if (game.isCheckinOpen()) {
+            mViewCheckin.setVisibility(View.VISIBLE);
+
+            if (card.isCheckedIn(game)) {
+                mSwitchCheckin.setChecked(true);
+                mButtonSectorSelection.setVisibility(View.VISIBLE);
+                checkedSector = card.getCheckinSector(game);
+                if (checkedSector != null) {
+                    mButtonSectorSelection.setText(
+                            checkedSector.name + "\n" + checkedSector.gates);
+                }
+            } else {
+                mSwitchCheckin.setChecked(false);
+                mButtonSectorSelection.setVisibility(View.GONE);
+            }
+
+            // Seta listener para mudanças no botão "vai ao jogo?"
+            mSwitchCheckin.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
-                public void success(JSONObject json) {
-                    App.cards = (new App.Scrapper(json)).getCards();
-                    buildInterface();
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    // Mostra o resto do form em caso de sim, senao esconde
+                    boolean on = buttonView.isChecked();
+                    mButtonSectorSelection.setVisibility(on ? View.VISIBLE : View.GONE);
                 }
             });
-        }
-        else {
-            // Usando apenas o primeiro cartão da listagem por hora
-            // TODO: Deixar o usuário escolher entre cartões, caso exista mais de um
-            card = cards.get(0);
-
-            if (game.isCheckinOpen()) {
-                mViewCheckin.setVisibility(View.VISIBLE);
-
-                if (card.isCheckedIn(game)) {
-                    mSwitchCheckin.setChecked(true);
-                    mButtonSectorSelection.setVisibility(View.VISIBLE);
-                    checkedSector = card.getCheckinSector(game);
-                    if (checkedSector != null) {
-                        mButtonSectorSelection.setText(
-                                checkedSector.name + "\n" + checkedSector.gates);
-                    }
-                } else {
-                    mSwitchCheckin.setChecked(false);
-                    mButtonSectorSelection.setVisibility(View.GONE);
-                }
-
-                // Seta listener para mudanças no botão "vai ao jogo?"
-                mSwitchCheckin.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                    @Override
-                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                        // Mostra o resto do form em caso de sim, senao esconde
-                        boolean on = buttonView.isChecked();
-                        mButtonSectorSelection.setVisibility(on ? View.VISIBLE : View.GONE);
-                    }
-                });
+        } else {
+            mCheckinEndedContainer.setVisibility(View.VISIBLE);
+            String text;
+            if (card.isCheckedIn(game)) {
+                Game.Sector sector = card.getCheckinSector(game);
+                text = getString(R.string.check_in_made, sector.name, sector.gates);
             } else {
-                mCheckinEndedContainer.setVisibility(View.VISIBLE);
-                String text;
-                if (card.isCheckedIn(game)) {
-                    Game.Sector sector = card.getCheckinSector(game);
-                    text = getString(R.string.check_in_made, sector.name, sector.gates);
-                } else {
-                    text = getString(R.string.didnt_checked_in);
-                }
-                mCheckinEndedMessage.setText(text);
+                text = getString(R.string.didnt_checked_in);
             }
+            mCheckinEndedMessage.setText(text);
         }
     }
 

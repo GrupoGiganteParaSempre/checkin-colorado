@@ -21,8 +21,8 @@ public class Card implements Parcelable {
     protected String key;
     protected String name;
     protected String associationType;
-    protected Map<String, Boolean> checkinAvailable;
-    protected Map<String, Game.Sector> checkin;
+    protected Map<String, Boolean> checkinAvailable = new HashMap<String, Boolean>();
+    protected Map<String, Game.Sector> checkin = new HashMap<String, Game.Sector>();
 
     public Card(String id, String key, String name, String associationType) {
         super();
@@ -31,7 +31,6 @@ public class Card implements Parcelable {
         this.key = key;
         this.name = name;
         this.associationType = associationType;
-        this.checkin = new HashMap<String, Game.Sector>();
     }
 
     /* ********************* */
