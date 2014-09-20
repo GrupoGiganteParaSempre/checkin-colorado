@@ -18,14 +18,18 @@ import java.util.Map;
 public class Card implements Parcelable {
 
     protected String id;
+    protected String key;
+    protected String name;
     protected String associationType;
     protected Map<String, Boolean> checkinAvailable;
     protected Map<String, Game.Sector> checkin;
 
-    public Card(String cardId, String associationType) {
+    public Card(String id, String key, String name, String associationType) {
         super();
 
-        this.id = cardId;
+        this.id = id;
+        this.key = key;
+        this.name = name;
         this.associationType = associationType;
         this.checkin = new HashMap<String, Game.Sector>();
     }
@@ -36,6 +40,8 @@ public class Card implements Parcelable {
 
     public Card(Parcel parcel) {
         this.id = parcel.readString();
+        this.key = parcel.readString();
+        this.name = parcel.readString();
         this.associationType = parcel.readString();
 
         Bundle b = parcel.readBundle();
@@ -55,6 +61,8 @@ public class Card implements Parcelable {
     @Override
     public void writeToParcel(Parcel parcel, int i) {
         parcel.writeString(id);
+        parcel.writeString(key);
+        parcel.writeString(name);
         parcel.writeString(associationType);
 
         Bundle b = new Bundle();
@@ -92,6 +100,8 @@ public class Card implements Parcelable {
     public String getId() {
         return id;
     }
+    public String getKey() { return key; }
+    public String getName() { return name; }
     public String getAssociationType() { return associationType; }
 
     /**

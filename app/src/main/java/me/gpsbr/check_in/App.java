@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.text.method.LinkMovementMethod;
+import android.util.Log;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.WebSettings;
@@ -34,6 +35,8 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -47,7 +50,6 @@ import java.net.CookiePolicy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -279,22 +281,22 @@ public class App extends Application {
     /**
      * HTTP POST Request handler
      *
-     * @param url        URL a ser acessada
-     * @param postValues Dados a serem postados
-     * @return           HTMl resultante da requisição, "" em caso de problemas
+     * @param url    URL a ser acessada
+     * @param params Dados a serem postados
+     * @return       JSON resultante da requisição, "" em caso de problemas
      */
-    public static String doRequest(String url, Map<String, String> postValues) {
+    public static String doRequest(String url, Map<String, String> params) {
         // building request
         Request.Builder builder = new Request.Builder().url(url);
 
-        if (!postValues.isEmpty()) {
+        if (!params.isEmpty()) {
             FormEncodingBuilder formBody = new FormEncodingBuilder();
 
-            // in case of a post request (postValues not empty), include the post fields
-            Iterator<String> keySetIterator = postValues.keySet().iterator();
+            // in case of a post request (params not empty), include the post fields
+            Iterator<String> keySetIterator = params.keySet().iterator();
             while (keySetIterator.hasNext()) {
                 String key = keySetIterator.next();
-                formBody.add(key, postValues.get(key));
+                formBody.add(key, params.get(key));
             }
             builder.post(formBody.build());
         }
@@ -378,115 +380,89 @@ public class App extends Application {
     }
 
     protected static class Scrapper {
-        protected String html;
-        protected Document dom;
+        protected JSONObject json;
 
-        public Scrapper(String html) {
-            this.html = html;
-            this.dom = Jsoup.parse(html);
+        public Scrapper(JSONObject json) {
+            this.json = json;
         }
 
         public ArrayList<Game> getGames() {
             ArrayList<Game> games = new ArrayList<Game>();
-
-            Elements gameTitles = dom.select("td.SOCIO_destaque_titulo > strong");
-            if (!gameTitles.isEmpty()) for (Element gameTitle : gameTitles) {
-                games.add(getGame(gameTitle.parent()));
+            JSONObject gameList = json.optJSONObject("jogos");
+            Iterator<String> keys = gameList.keys();
+            while (keys.hasNext()) {
+                String id = keys.next();
+                JSONObject gameInfo = gameList.optJSONObject(id);
+                String away = gameInfo.optString("timevisitante");
+                String venue = gameInfo.optString("estadio");
+                String date = gameInfo.optString("data");
+                String hour = gameInfo.optString("hora");
+                String tournament = gameInfo.optString("campeonato");
+                Game game = new Game(id, "Internacional", away, venue, date+' '+hour, tournament);
+                game.enableCheckin(); // se aparece na listagem é porque está habilitado
+                // TODO : adicionar setores
+                games.add(game);
             }
             return games;
         }
 
-        protected Game getGame(Element gameContainer) {
-            // Get basic information about a game
-            String[] match = gameContainer.select("strong").first().text().split(" X ");
-            String home = match[0];
-            String away = match[1];
-
-            String[] info = gameContainer.select("span.SOCIO_texto_destaque_titulo2").first().text().split(" - ");
-            String tournament = info[0];
-            String date = info[1];
-            String venue = info[2];
-
-            // We have a gameid and sectors to fill
-            Elements checkinForms = gameContainer.select("form");
-            if (checkinForms.isEmpty()) {
-                return new Game(null, home, away, venue, date, tournament);
-            }
-
-            Element checkinForm = checkinForms.first();
-            String id = checkinForm.select("input[name=id_jogo]").first().val();
-            Game game = new Game(id, home, away, venue, date, tournament);
-
-            if (!gameContainer.html().contains("do site foi finalizado")) {
-                // Enables checkin for this game
-                game.enableCheckin();
-            }
-
-            // Get available sectors
-            Elements options = checkinForm.select("select[name=setor] option[value!=1]");
-            String[] sectorInfo;
-            for (Element option : options) {
-                sectorInfo = option.text().split(" - ");
-                if (game.findSector(option.val()) == null) {
-                    game.addSector(new Game.Sector(option.val(), sectorInfo[0], sectorInfo[1]));
-                }
-            }
-
-            return game;
-        }
-
         public ArrayList<Card> getCards() {
-            Element container = dom.select("td.SOCIO_destaque_titulo > strong").first().parent();
-            Elements cardSpans = container.select(".blocodecartao .SOCIO_texto_destaque_titulo2");
-
+            Log.d(App.TAG, json.toString());
             ArrayList<Card> cards = new ArrayList<Card>();
-            for (Element cardElement : cardSpans) {
-                String[] cardInfo = cardElement.text().split("-");
-                Card card = new Card(cardInfo[0].split(" ")[1], cardInfo[1]);
-                cards.add(card);
+            JSONObject cardList = json.optJSONObject("cartoes");
+            Iterator<String> keys = cardList.keys();
+            while (keys.hasNext()) {
+                String id = keys.next();
+                JSONObject cardInfo = cardList.optJSONObject(id);
+                cards.add(new Card(
+                        id,
+                        cardInfo.optString("chave"),
+                        cardInfo.optString("nome"),
+                        cardInfo.optString("descricao")
+                ));
             }
             return cards;
         }
 
-        public Game.Sector getCheckin(Card card, Game game) {
-            Elements checkin = dom
-                    .select("input[name=id_jogo][value="+game.getId()+"]+input[name=cartao][value="+card.getId()+"]")
-                    .parents()
-                    .select("select[name=setor] option[selected][value!=1]");
-
-            if (checkin.isEmpty()) return null;
-            else return game.findSector(checkin.val());
-        }
+//        public Game.Sector getCheckin(Card card, Game game) {
+//            Elements checkin = dom
+//                    .select("input[name=id_jogo][value="+game.getId()+"]+input[name=cartao][value="+card.getId()+"]")
+//                    .parents()
+//                    .select("select[name=setor] option[selected][value!=1]");
+//
+//            if (checkin.isEmpty()) return null;
+//            else return game.findSector(checkin.val());
+//        }
 
     }
 
     /**
      * Cria uma lista de jogos fazendo scrape da página de checkin
      *
-     * @param html HTML da página de checkin
+     * @param json JSON retornado pelo login
      */
-    public static void buildCheckinFrom(String html) {
-        Scrapper scrapper = new Scrapper(html);
+    public static void buildCheckinFrom(JSONObject json) {
+        Scrapper scrapper = new Scrapper(json);
 
         games = scrapper.getGames();
 
-        for (Game game : games) {
-            // Scrapping cards
-            cards = scrapper.getCards();
-
-            // Scrapping checkins
-            for (Card c : cards) {
-                for (Game g : games) {
-                    Game.Sector sector = scrapper.getCheckin(c, g);
-                    if (sector != null) {
-                        c.checkin(g, sector);
-
-                        // O cara fez checkin, remove do canal NOT_CHECKIN (caso esteja ainda)
-                        parseUnsubscribe("NOT_CHECKIN");
-                    }
-                }
-            }
-        }
+//        for (Game game : games) {
+//            // Scrapping cards
+//            cards = scrapper.getCards();
+//
+//            // Scrapping checkins
+//            for (Card c : cards) {
+//                for (Game g : games) {
+//                    Game.Sector sector = scrapper.getCheckin(c, g);
+//                    if (sector != null) {
+//                        c.checkin(g, sector);
+//
+//                        // O cara fez checkin, remove do canal NOT_CHECKIN (caso esteja ainda)
+//                        parseUnsubscribe("NOT_CHECKIN");
+//                    }
+//                }
+//            }
+//        }
     }
 
     /**
@@ -636,55 +612,55 @@ public class App extends Application {
     }
 }
 
-interface HTTPClientCallbackInterface {
-    public void success(String html);
+interface JSONClientCallbackInterface {
+    public void success(JSONObject json);
 }
 
 /**
  * Represents an asynchronous login/registration task used to authenticate
  * the user.
  */
-class HTTPClient extends AsyncTask<Void, Void, String> {
+class JSONClient extends AsyncTask<Void, Void, String> {
 
     protected String url;
-    protected Map<String, String> postValues = new HashMap<String, String>();
-    protected HTTPClientCallbackInterface callback;
+    protected Map<String, String> params = new HashMap<String, String>();
+    protected JSONClientCallbackInterface callback;
 
-    HTTPClient(String url) {
+    JSONClient(String url) {
         this(url, null, null);
     }
-    HTTPClient(String url, HTTPClientCallbackInterface callback) {
+    JSONClient(String url, JSONClientCallbackInterface callback) {
         this(url, null, callback);
     }
-    HTTPClient(String url, Map<String, String> postValues, HTTPClientCallbackInterface callback) {
+    JSONClient(String url, Map<String, String> params, JSONClientCallbackInterface callback) {
         this.url = url;
-        this.postValues = postValues;
+        this.params = params;
         this.callback = callback;
     }
 
     @Override
-    protected String doInBackground(Void... params) {
-        // building request
-        Request.Builder builder = new Request.Builder().url(url);
+    protected String doInBackground(Void... par) {
+        if (params != null && !params.isEmpty()) {
+            String queryString = "?";
 
-        if (!postValues.isEmpty()) {
-            FormEncodingBuilder formBody = new FormEncodingBuilder();
-
-            // in case of a post request (postValues not empty), include the post fields
-            Iterator<String> keySetIterator = postValues.keySet().iterator();
+            // in case of a post request (params not empty), include the post fields
+            Iterator<String> keySetIterator = params.keySet().iterator();
             while (keySetIterator.hasNext()) {
                 String key = keySetIterator.next();
-                formBody.add(key, postValues.get(key));
+                queryString = queryString + key + "=" + params.get(key) + "&";
             }
-            builder.post(formBody.build());
+
+            url = url + queryString;
         }
 
-        Request request = builder.build();
+        // building request
+        Request request = new Request.Builder().url(url).build();
 
         try {
             Response response = App.client.newCall(request).execute();
             if (response.isSuccessful()) {
-                return new String(response.body().bytes(), "ISO-8859-1");
+                return response.body().string();
+                // return new String(response.body().bytes(), "ISO-8859-1");
             } else {
                 // Evita problemas de 404 ou 50x
                 return "";
@@ -696,7 +672,16 @@ class HTTPClient extends AsyncTask<Void, Void, String> {
 
     @Override
     protected void onPostExecute(final String html) {
-        if (callback != null) callback.success(html);
+        if (callback != null)
+        {
+            JSONObject ret;
+            try {
+                ret = new JSONObject(html);
+            } catch (JSONException e) {
+                ret = null;
+            }
+            callback.success(ret);
+        }
     }
 
     @Override

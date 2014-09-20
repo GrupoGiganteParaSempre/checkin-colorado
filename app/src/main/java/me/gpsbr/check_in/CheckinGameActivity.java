@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -18,6 +17,9 @@ import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 import com.parse.ParseAnalytics;
 
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -134,7 +136,7 @@ public class CheckinGameActivity extends Activity {
     /**
      * Monta a interface
      */
-    private void buildInterface() {
+    private final void buildInterface() {
         game = App.getGame(gameId);
         ((TextView) findViewById(R.id.game_home)).setText(game.getHome());
         ((TextView) findViewById(R.id.game_away)).setText(game.getAway());
@@ -142,12 +144,20 @@ public class CheckinGameActivity extends Activity {
         ((TextView) findViewById(R.id.game_date)).setText(game.getDate());
         ((TextView) findViewById(R.id.game_tournament)).setText(game.getTournament());
 
-        List<Card> cards = App.getCards();
+        ArrayList<Card> cards = App.cards;
 
         if (cards.isEmpty()) {
-            // Usuário é provavelmente CB ou algum outro tipo de associação que não faz check-in
-            mCheckinUnavailableMessage.setVisibility(View.VISIBLE);
-        } else {
+            // mCheckinUnavailableMessage.setVisibility(View.VISIBLE);
+            String url = "http://www.internacional.com.br/checkin/public/index/jogo?id=" + game.getId();
+            new JSONClient(url, new JSONClientCallbackInterface() {
+                @Override
+                public void success(JSONObject json) {
+                    App.cards = (new App.Scrapper(json)).getCards();
+                    buildInterface();
+                }
+            });
+        }
+        else {
             // Usando apenas o primeiro cartão da listagem por hora
             // TODO: Deixar o usuário escolher entre cartões, caso exista mais de um
             card = cards.get(0);
@@ -214,24 +224,24 @@ public class CheckinGameActivity extends Activity {
         App.Dialog.showProgress(this, "Efetuando " + (in ? "Checkin" : "Checkout") + "...");
 
         // Faz o checkin rodando em background
-        HTTPClient httpClient = new HTTPClient(CHECKIN_URL, postValues, new HTTPClientCallbackInterface() {
+        JSONClient jsonClient = new JSONClient(CHECKIN_URL, postValues, new JSONClientCallbackInterface() {
             @Override
-            public void success(String html) {
+            public void success(JSONObject json) {
                 App.Dialog.dismissProgress();
 
                 // Trata problemas de rede
-                if (html == null || html.equals("")) {
+                if (json == null) {
                     App.Dialog.showAlert(CheckinGameActivity.this,
                             getString(R.string.error_network), "Erro");
                     return;
                 }
 
                 // Trata problema do check-in já ter sido finalizado
-                if (html.contains("site foi finalizado") || html.contains("O prazo para o check-in referente")) {
-                    App.Dialog.showAlert(CheckinGameActivity.this,
-                            "Desculpe, mas o check-in já foi finalizado para este jogo", "Erro");
-                    return;
-                }
+//                if (html.contains("site foi finalizado") || html.contains("O prazo para o check-in referente")) {
+//                    App.Dialog.showAlert(CheckinGameActivity.this,
+//                            "Desculpe, mas o check-in já foi finalizado para este jogo", "Erro");
+//                    return;
+//                }
 
                 // Registra o checkin
                 if (in) card.checkin(game, checkedSector);
@@ -267,7 +277,7 @@ public class CheckinGameActivity extends Activity {
                         .build());
             }
         });
-        httpClient.execute((Void) null);
+        jsonClient.execute((Void) null);
     }
 
     /**
