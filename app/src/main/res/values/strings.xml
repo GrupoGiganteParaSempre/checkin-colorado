@@ -46,6 +46,7 @@
     <string name="check_in_made" formatted="false">Você confirmou que vai ao jogo\n\n%s\n%s</string>
     <string name="error_no_sector_title">Setor não-informado</string>
     <string name="error_no_sector_message">Você precisa selecionar um setor para o jogo</string>
+    <string name="error_no_checkin_made">Você ainda não fez check-in</string>
     <string name="checkin_sucessfull" formatted="false">A comunicação de que você %s a esta partida foi enviada, e o comprovante salvo na galeria do seu dispositivo.</string>
     <string name="going_question">Vai ao jogo?</string>
     <string name="yes_or_no">Sim/Não</string>

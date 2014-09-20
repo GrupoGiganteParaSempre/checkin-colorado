@@ -42,10 +42,6 @@ import java.util.Map;
  */
 public class CheckinGameActivity extends Activity {
 
-    protected final String FORM_CHECKIN_ID = "1";
-    protected final String FORM_CHECKOUT_ID = "2";
-    protected final String CHECKIN_URL= "http://terra";
-
     protected int gameId;
     protected Game game;
     protected int cardId;
@@ -173,13 +169,11 @@ public class CheckinGameActivity extends Activity {
         (new JSONClient(url, new JSONClientCallbackInterface() {
             @Override
             public void success(JSONObject json) {
-                Log.d(App.TAG, json.toString());
                 JSONObject status = json.optJSONObject("checkinStatus");
                 if (status != null) {
-                    Log.d(App.TAG, "entrou");
                     // Caso um check-in já tenha sido feito, registra o checkin aqui também
                     Game.Sector sector = game.findSector(status.optString("codigosetor"));
-                    card.checkin(game, sector);
+                    card.checkin(game, sector, status.optString("sid"));
                 }
                 mProgress.setVisibility(View.GONE);
                 buildInterface2();
@@ -239,11 +233,22 @@ public class CheckinGameActivity extends Activity {
             return;
         }
 
-        App.Dialog.showProgress(this, "Efetuando " + (in ? "Checkin" : "Checkout") + "...");
+        // Verifica se o usuário está fazendo checkout sem ter feito check-in
+        // TODO : Permitir que ele faça isso se for locada
+        // TODO : Desabilitar o botão de confirmação para evitar cair neste caso
+        if (!in && card.getCheckinSector(game) == null) {
+            App.Dialog.showAlert(this, getString(R.string.error_no_sector_message),
+                    getString(R.string.error_no_sector_title));
+            return;
+        }
 
         // Faz o checkin rodando em background
-        String url = "http://www.internacional.com.br/checkin/public/checkin/padrao?operacao=100&setor=" + checkedSector.id;
-        Log.d(App.TAG, url);
+        String url;
+        if (in) url = "http://www.internacional.com.br/checkin/public/checkin/padrao?operacao=100&setor=" + checkedSector.id;
+        else url = "http://www.internacional.com.br/checkin/public/checkin/cancelar?sid=" + card.getCheckinId(game);
+
+        App.Dialog.showProgress(this, "Efetuando " + (in ? "Checkin" : "Checkout") + "...");
+
         (new JSONClient(url, new JSONClientCallbackInterface() {
             @Override
             public void success(JSONObject json) {
@@ -265,7 +270,7 @@ public class CheckinGameActivity extends Activity {
                 // }
 
                 // Registra o checkin
-                if (in) card.checkin(game, checkedSector);
+                if (in) card.checkin(game, checkedSector, json.optJSONObject("checkin").optString("sid"));
                 else card.checkout(game);
 
                 // Registra o checkin no push (removendo o user do channel "NOT_CHECKIN")

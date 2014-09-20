@@ -22,7 +22,7 @@ public class Card implements Parcelable {
     protected String name;
     protected String associationType;
     protected Map<String, Boolean> checkinAvailable = new HashMap<String, Boolean>();
-    protected Map<String, Game.Sector> checkin = new HashMap<String, Game.Sector>();
+    protected Map<String, String[]> checkin = new HashMap<String, String[]>();
 
     public Card(String id, String key, String name, String associationType) {
         super();
@@ -50,7 +50,7 @@ public class Card implements Parcelable {
 
         b = parcel.readBundle();
         for (String k : b.keySet()) {
-            this.checkin.put(k, (Game.Sector)b.getParcelable(k));
+            this.checkin.put(k, b.getStringArray(k));
         }
     }
 
@@ -71,8 +71,8 @@ public class Card implements Parcelable {
         parcel.writeBundle(b);
 
         b = new Bundle();
-        for (Map.Entry<String, Game.Sector> e : checkin.entrySet()) {
-            b.putParcelable(e.getKey(), e.getValue());
+        for (Map.Entry<String, String[]> e : checkin.entrySet()) {
+            b.putStringArray(e.getKey(), e.getValue());
         }
     }
 
@@ -110,7 +110,24 @@ public class Card implements Parcelable {
      * @return     Setor para o qual foi feito checkin, do contrário null
      */
     public Game.Sector getCheckinSector(Game game) {
-        if (isCheckedIn(game)) return checkin.get(game.getId());
+        if (isCheckedIn(game)) {
+            String[] checkinInfo = checkin.get(game.getId());
+            return game.findSector(checkinInfo[0]);
+        }
+        else return null;
+    }
+
+    /**
+     * Retorna o ID de um checkin efetuado
+     *
+     * @param game Jogo alvo
+     * @return     ID do checkin
+     */
+    public String getCheckinId(Game game) {
+        if (isCheckedIn(game)) {
+            String[] checkinInfo = checkin.get(game.getId());
+            return checkinInfo[1];
+        }
         else return null;
     }
 
@@ -119,10 +136,10 @@ public class Card implements Parcelable {
      *
      * @param game   Jogo alvo
      * @param sector Setor do checkin
-     * @return       Setor do checkin
+     * @param id     Código do check-in efetuado
      */
-    public Game.Sector checkin(Game game, Game.Sector sector) {
-        return checkin.put(game.getId(), sector);
+    public void checkin(Game game, Game.Sector sector, String id) {
+        checkin.put(game.getId(), new String[]{ sector.id, id });
     }
 
     /**
