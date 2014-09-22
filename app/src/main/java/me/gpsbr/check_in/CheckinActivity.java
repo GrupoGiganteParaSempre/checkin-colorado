@@ -74,13 +74,14 @@ public class CheckinActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        if (id == R.id.action_logout) {
-            App.logout();
-            finish();
-        } else if (id == R.id.action_about) {
-            App.showAbout(this);
+        switch (item.getItemId()) {
+            // Respond to the action bar's Up/Home button
+            case R.id.action_logout:
+                App.logout();
+                break;
+            case R.id.action_about:
+                App.showAbout(this);
+                break;
         }
         return super.onOptionsItemSelected(item);
     }

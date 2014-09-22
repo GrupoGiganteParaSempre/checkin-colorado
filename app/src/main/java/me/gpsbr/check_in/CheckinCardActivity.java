@@ -116,7 +116,6 @@ public class CheckinCardActivity extends Activity {
                 break;
             case R.id.action_logout:
                 App.logout();
-                finish();
                 break;
             case R.id.action_about:
                 App.showAbout(this);

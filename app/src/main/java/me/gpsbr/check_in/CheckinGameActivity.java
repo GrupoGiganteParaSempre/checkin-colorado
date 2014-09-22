@@ -127,8 +127,6 @@ public class CheckinGameActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
         switch (item.getItemId()) {
             // Respond to the action bar's Up/Home button
             case android.R.id.home:
@@ -137,7 +135,6 @@ public class CheckinGameActivity extends Activity {
                 break;
             case R.id.action_logout:
                 App.logout();
-                finish();
                 break;
             case R.id.action_about:
                 App.showAbout(this);
