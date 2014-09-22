@@ -45,6 +45,7 @@ public class CheckinActivity extends Activity {
         // Inicialização das referências de UI
         mGameList = (ListView) findViewById(R.id.game_list);
         mCheckinClosedMessage = (TextView) findViewById(R.id.checkin_closed_message);
+        ((TextView) findViewById(R.id.subtitle)).setText("Jogos");
     }
 
     @Override

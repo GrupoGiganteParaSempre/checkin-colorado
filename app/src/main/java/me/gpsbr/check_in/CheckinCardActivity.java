@@ -66,9 +66,9 @@ public class CheckinCardActivity extends Activity {
         mCardList = (ListView) findViewById(R.id.game_list);
         mCheckinClosedMessage = (TextView) findViewById(R.id.checkin_closed_message);
         mProgress = findViewById(R.id.progress);
+        ((TextView) findViewById(R.id.subtitle)).setText("Cartões");
 
         Intent intent = getIntent();
-
         gameId = intent.getIntExtra(CheckinActivity.EXTRA_GAME_ID, 0);
     }
 

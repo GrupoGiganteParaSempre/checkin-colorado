@@ -9,8 +9,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.media.MediaScannerConnection;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -245,10 +249,14 @@ public class App extends Application {
         data("password", "");
         data("checkin_disabled", "");
 
-        // Inform the user
+        // Reseta os jogos e cartões
+        games = new ArrayList<Game>();
+        cards = new ArrayList<Card>();
+
+        // Informa o usuário
         App.toaster(context.getString(R.string.logout));
 
-        // Go back to the main activity (LoginActivity)
+        // Volta pra tela de login
         Intent intent = new Intent(context, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
@@ -314,69 +322,46 @@ public class App extends Application {
     /**
      * Salva o recibo de check-in na memória do aparelho
      *
-     * @param card Cartão ao qual foi feito o checkin
-     * @param game Jogo para o qual foi feito o checkin
-     *
-     * TODO: Tratar problemas com a impressão do checkin (rede, salvamento do arquivo, etc)
+     * @param game      Jogo para o qual foi feito o checkin
+     * @param checkinId Id do check-in conforme sistema do inter
      */
-    public static void printReceipt(final Card card, final Game game) {
-        final WebView w = new WebView(App.app);
-        final WebSettings settings = w.getSettings();
+    public static void printReceipt(Game game,String checkinId) {
+        // Busca o template do comprovante nos resources
+        Resources res = App.context.getResources();
+        Bitmap bitmap = (BitmapFactory.decodeResource(res, R.drawable.comprovante))
+                .copy(Bitmap.Config.ARGB_8888, true);
+        Canvas canvas = new Canvas(bitmap);
 
-        // Seta escala e zoom para que o webview não ajuste o tamanho a belprazer, ferrando com
-        // o layout da página
-        w.setInitialScale(100);
-        settings.setTextZoom(100);
+        Paint paint = new Paint();
+        paint.setColor(Color.BLACK);
+        paint.setTextSize(18);
 
-        // Libera javascript, porque iremos injetar depois para fixar o tamanho da janela
-        settings.setJavaScriptEnabled(true);
+        // Pinta os dados sobre o comprovante
+        canvas.drawText(checkinId, 170, 511, paint);
+        canvas.drawText("Inter X "+game.getAway(), 131, 540, paint);
+        canvas.drawText(game.getDate(), 129, 569, paint);
+        canvas.drawText(game.getVenue(), 155, 598, paint);
 
-        String url = App.context.getString(R.string.url_receipt, card.getId(), game.getId());
-        w.loadUrl(url);
-        w.setWebViewClient(new WebViewClient() {
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                view.loadUrl(url);
-                return true;
-            }
+        // Salva o bitmap :)
+        File file = new File(
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                "Checkin/checkin "+game.getId()+".jpg");
+        file.mkdirs();
+        if (file.exists()) file.delete();
+        try {
+            FileOutputStream out = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+            out.flush();
+            out.close();
 
-            @Override
-            public void onPageFinished(final WebView view, String url) {
-                // Injeta javascript para fixar tamanho da div no layout da página
-                view.loadUrl("javascript:(function(){document.body.style.width='465px'})()");
-
-                // Delay de 200ms, suficiente para ser renderizada a página
-                new Handler().postDelayed(new Runnable() {
-                    public void run() {
-                        // Salva um printscreen da página em um bitmap
-                        Bitmap b = Bitmap.createBitmap(465, 465, Bitmap.Config.ARGB_8888);
-                        Canvas c = new Canvas(b);
-                        view.draw(c);
-
-                        // Salva o bitmap :)
-                        File file = new File(
-                                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                                "Checkin/checkin_" + game.getId() + ".jpg");
-                        file.mkdirs();
-                        if (file.exists()) file.delete();
-                        try {
-                            FileOutputStream out = new FileOutputStream(file);
-                            b.compress(Bitmap.CompressFormat.JPEG, 80, out);
-                            out.flush();
-                            out.close();
-
-                            // Disparado media scanner, porque por algum motivo não aparece o
-                            // comprovante na galeria
-                            MediaScannerConnection.scanFile(App.app,
-                                    new String[]{file.toString()}, null, null);
-                        } catch (Exception e) {
-                            // TODO: Tratar problema no salvamento do arquivo
-                            // e.printStackTrace();
-                        }
-                    }
-                }, 500);
-            }
-        });
+            // Disparado media scanner, porque por algum motivo não aparece o
+            // comprovante na galeria
+            MediaScannerConnection.scanFile(App.app,
+                    new String[]{file.toString()}, null, null);
+        } catch (Exception e) {
+            // TODO: Tratar problema no salvamento do arquivo
+            // e.printStackTrace();
+        }
     }
 
     protected static class Scrapper {
@@ -422,17 +407,6 @@ public class App extends Application {
             }
             return cards;
         }
-
-//        public Game.Sector getCheckin(Card card, Game game) {
-//            Elements checkin = dom
-//                    .select("input[name=id_jogo][value="+game.getId()+"]+input[name=cartao][value="+card.getId()+"]")
-//                    .parents()
-//                    .select("select[name=setor] option[selected][value!=1]");
-//
-//            if (checkin.isEmpty()) return null;
-//            else return game.findSector(checkin.val());
-//        }
-
     }
 
     /**
@@ -442,26 +416,7 @@ public class App extends Application {
      */
     public static void buildCheckinFrom(JSONObject json) {
         Scrapper scrapper = new Scrapper(json);
-
         games = scrapper.getGames();
-
-//        for (Game game : games) {
-//            // Scrapping cards
-//            cards = scrapper.getCards();
-//
-//            // Scrapping checkins
-//            for (Card c : cards) {
-//                for (Game g : games) {
-//                    Game.Sector sector = scrapper.getCheckin(c, g);
-//                    if (sector != null) {
-//                        c.checkin(g, sector);
-//
-//                        // O cara fez checkin, remove do canal NOT_CHECKIN (caso esteja ainda)
-//                        parseUnsubscribe("NOT_CHECKIN");
-//                    }
-//                }
-//            }
-//        }
     }
 
     /**

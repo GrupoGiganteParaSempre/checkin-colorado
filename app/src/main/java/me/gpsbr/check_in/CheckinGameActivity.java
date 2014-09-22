@@ -195,6 +195,7 @@ public class CheckinGameActivity extends Activity {
                 }
             } else {
                 mSwitchCheckin.setChecked(false);
+                mButtonConfirm.setEnabled(false);
                 mButtonSectorSelection.setVisibility(View.GONE);
             }
 
@@ -205,6 +206,7 @@ public class CheckinGameActivity extends Activity {
                     // Mostra o resto do form em caso de sim, senao esconde
                     boolean on = buttonView.isChecked();
                     mButtonSectorSelection.setVisibility(on ? View.VISIBLE : View.GONE);
+                    mButtonConfirm.setEnabled(on || card.isCheckedIn(game));
                 }
             });
         } else {
@@ -235,7 +237,6 @@ public class CheckinGameActivity extends Activity {
 
         // Verifica se o usuário está fazendo checkout sem ter feito check-in
         // TODO : Permitir que ele faça isso se for locada
-        // TODO : Desabilitar o botão de confirmação para evitar cair neste caso
         if (!in && card.getCheckinSector(game) == null) {
             App.Dialog.showAlert(this, getString(R.string.error_no_sector_message),
                     getString(R.string.error_no_sector_title));
@@ -261,46 +262,41 @@ public class CheckinGameActivity extends Activity {
                     return;
                 }
 
-                // Trata problema do check-in já ter sido finalizado
-                // TODO : Rever isso aqui
-                // if (html.contains("site foi finalizado") || html.contains("O prazo para o check-in referente")) {
-                //     App.Dialog.showAlert(CheckinGameActivity.this,
-                //             "Desculpe, mas o check-in já foi finalizado para este jogo", "Erro");
-                //     return;
-                // }
+                if (in) {
+                    // Registra o checkin
+                    String checkinId = json.optJSONObject("checkin").optString("sid");
+                    card.checkin(game, checkedSector, checkinId);
 
-                // Registra o checkin
-                if (in) card.checkin(game, checkedSector, json.optJSONObject("checkin").optString("sid"));
+                    // Gera o recibo
+                    App.printReceipt(game, checkinId);
+                }
                 else card.checkout(game);
 
                 // Registra o checkin no push (removendo o user do channel "NOT_CHECKIN")
                 App.parseUnsubscribe("NOT_CHECKIN");
 
-                // Gera o recibo
-//                App.printReceipt(card, game);
-
                 // Mostra mensagem de sucesso :)
-                String message = getString(R.string.checkin_sucessfull, (in ? "VAI" : "NÃO VAI"));
+                String message = getString(in ? R.string.checkin_sucessfull : R.string.checkout_sucessfull);
                 App.Dialog.showAlert(CheckinGameActivity.this,
-                        message, (in ? "Checkin" : "Checkout") + " efetuado");
+                        message, (in ? "Checkin" : "Cancelamento") + " efetuado");
 
-//                // Parse Analytics
-//                Map<String, String> checkinAnalytics = new HashMap<String, String>();
-//                checkinAnalytics.put("mode", in ? "checkin" : "checkout");
-//                if (in) checkinAnalytics.put("sector", checkedSector.name);
-//                ParseAnalytics.trackEvent("checkin", checkinAnalytics);
-//
-//                // Google Analytics
-//                Tracker t = ((App) CheckinGameActivity.this.getApplication()).getTracker(
-//                        App.TrackerName.APP_TRACKER);
-//                t.send(new HitBuilders.EventBuilder()
-//                        .setCategory("mode")
-//                        .setAction(in ? "checkin" : "checkout")
-//                        .build());
-//                t.send(new HitBuilders.EventBuilder()
-//                        .setCategory("sector")
-//                        .setAction(checkedSector.name)
-//                        .build());
+                // Parse Analytics
+                Map<String, String> checkinAnalytics = new HashMap<String, String>();
+                checkinAnalytics.put("mode", in ? "checkin" : "checkout");
+                if (in) checkinAnalytics.put("sector", checkedSector.name);
+                ParseAnalytics.trackEvent("checkin", checkinAnalytics);
+
+                // Google Analytics
+                Tracker t = ((App) CheckinGameActivity.this.getApplication()).getTracker(
+                        App.TrackerName.APP_TRACKER);
+                t.send(new HitBuilders.EventBuilder()
+                        .setCategory("mode")
+                        .setAction(in ? "checkin" : "checkout")
+                        .build());
+                t.send(new HitBuilders.EventBuilder()
+                        .setCategory("sector")
+                        .setAction(checkedSector.name)
+                        .build());
             }
         })).execute((Void) null);
     }

@@ -22,13 +22,23 @@
             android:layout_height="match_parent"
             android:background="@drawable/gradient"/>
 
+        <TextView
+            android:id="@+id/subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:padding="@dimen/activity_horizontal_margin"
+            android:layout_gravity="start|bottom"
+            android:textStyle="bold"
+            android:textColor="@color/checkinwhite_color" />
+
     </FrameLayout>
 
     <ProgressBar
         android:id="@+id/progress"
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_weight="2"
         android:visibility="gone"
         android:layout_gravity="center" />
