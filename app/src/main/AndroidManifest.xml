@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="me.gpsbr.check_in"
-    android:versionCode="6"
-    android:versionName="1.0.2" >
+    android:versionCode="8"
+    android:versionName="1.1.0" >
 
     <!-- To scrape internacional's website -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -16,10 +16,12 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
-    <permission android:protectionLevel="signature"
-        android:name="me.gpsbr.check_in.permission.C2D_MESSAGE" />
-    <uses-permission android:name="me.gpsbr.check_in.permission.C2D_MESSAGE" />
 
+    <permission
+        android:name="me.gpsbr.check_in.permission.C2D_MESSAGE"
+        android:protectionLevel="signature" />
+
+    <uses-permission android:name="me.gpsbr.check_in.permission.C2D_MESSAGE" />
 
     <application
         android:name=".App"
@@ -29,9 +31,9 @@
         android:theme="@style/CheckinWhite" >
         <activity
             android:name=".LoginActivity"
-            android:windowSoftInputMode="adjustResize"
+            android:label="@string/app_name"
             android:screenOrientation="portrait"
-            android:label="@string/app_name" >
+            android:windowSoftInputMode="adjustResize" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -40,33 +42,43 @@
         </activity>
         <activity
             android:name=".CheckinActivity"
-            android:screenOrientation="portrait"
-            android:label="@string/title_activity_checkin" >
+            android:label="@string/title_activity_checkin"
+            android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name=".CheckinGameActivity"
-            android:screenOrientation="portrait"
-            android:label="@string/title_activity_checkin_game"
+            android:name=".CheckinCardActivity"
+            android:label="@string/title_activity_checkin_card"
             android:parentActivityName=".CheckinActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="me.gpsbr.check_in.CheckinActivity" />
         </activity>
-
+        <activity
+            android:name=".CheckinGameActivity"
+            android:label="@string/title_activity_checkin_game"
+            android:parentActivityName=".CheckinCardActivity"
+            android:screenOrientation="portrait" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="me.gpsbr.check_in.CheckinActivity" />
+        </activity>
 
         <!-- Parse configuration -->
         <service android:name="com.parse.PushService" />
-        <receiver android:name="com.parse.ParseBroadcastReceiver">
+
+        <receiver android:name="com.parse.ParseBroadcastReceiver" >
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.USER_PRESENT" />
             </intent-filter>
         </receiver>
-        <receiver android:name="com.parse.GcmBroadcastReceiver"
-            android:permission="com.google.android.c2dm.permission.SEND">
+        <receiver
+            android:name="com.parse.GcmBroadcastReceiver"
+            android:permission="com.google.android.c2dm.permission.SEND" >
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
                 <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
+
                 <category android:name="me.gpsbr.check_in" />
             </intent-filter>
         </receiver>

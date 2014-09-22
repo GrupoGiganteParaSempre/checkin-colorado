@@ -17,6 +17,8 @@ import android.widget.TextView;
 
 import com.parse.ParseAnalytics;
 
+import org.json.JSONObject;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -195,23 +197,27 @@ public class LoginActivity extends Activity {
             postValues.put("senha", password);
             String url = getString(R.string.url_login);
 
-            HTTPClient httpClient = new HTTPClient(url, postValues, new HTTPClientCallbackInterface() {
+            JSONClient jsonClient = new JSONClient(url, postValues, new JSONClientCallbackInterface() {
                 @Override
-                public void success(String html) {
-                    if (html.equals("")) {
+                public void success(JSONObject json) {
+                    if (json == null) {
                         // Vazio significa um erro de conexão
                         showForm();
                         App.toaster(getString(R.string.error_network));
-                    } else if (html.contains("Tente novamente")) {
-                        // Mensagem típica de erro de matrícula inválida
-                        showForm();
-                        mRegistrationNumber.setError(getString(R.string.error_invalid_registration_number));
-                        mRegistrationNumber.requestFocus();
-                    } else if (html.contains("Tente outra vez")) {
-                        // Mensagem típica de erro de senha
-                        showForm();
-                        mPassword.setError(getString(R.string.error_incorrect_password));
-                        mPassword.requestFocus();
+                    } else if (json.optInt("status", 0) == 0) {
+                        // Status 0 significa erro de senha ou matrícula
+                        if (json.optString("msg").contains("Erro ao processar")) {
+                            // Mensagem típica de erro na matrícula
+                            showForm();
+                            mRegistrationNumber.setError(getString(R.string.error_invalid_registration_number));
+                            mRegistrationNumber.requestFocus();
+                        }
+                        else {
+                            // Caso contrário, considera erro na senha
+                            showForm();
+                            mPassword.setError(getString(R.string.error_incorrect_password));
+                            mPassword.requestFocus();
+                        }
                     } else {
                         // Sem erro, login efetuado
                         App.toaster(getString(R.string.login_sucessfull));
@@ -220,7 +226,7 @@ public class LoginActivity extends Activity {
                         App.login(registration_number, password);
 
                         // Extrai os dados para a próxima atividade
-                        App.buildCheckinFrom(html);
+                        App.buildCheckinFrom(json);
 
                         // Chama a próxima atividade e mata a atividade de login
                         Intent intent = new Intent(LoginActivity.this, CheckinActivity.class);
@@ -230,7 +236,7 @@ public class LoginActivity extends Activity {
                     }
                 }
             });
-            httpClient.execute((Void) null);
+            jsonClient.execute((Void) null);
         }
     }
 
