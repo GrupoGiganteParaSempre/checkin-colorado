@@ -22,7 +22,26 @@
             android:layout_height="match_parent"
             android:background="@drawable/gradient"/>
 
+        <TextView
+            android:id="@+id/subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:padding="@dimen/activity_horizontal_margin"
+            android:layout_gravity="start|bottom"
+            android:textStyle="bold"
+            android:textColor="@color/checkinwhite_color" />
+
     </FrameLayout>
+
+    <ProgressBar
+        android:id="@+id/progress"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="2"
+        android:visibility="gone"
+        android:layout_gravity="center" />
 
     <LinearLayout
         android:paddingTop="@dimen/activity_vertical_margin"
@@ -33,21 +52,22 @@
         android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="0dp">
-
         <TextView
+            android:id="@+id/checkin_closed_message"
+            android:text="@string/checkin_closed"
             android:layout_width="match_parent"
             android:layout_height="fill_parent"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="@string/checkin_closed"
-            android:id="@+id/checkin_closed_message"
             android:visibility="gone"
             android:textColor="@color/checkinwhite_dual_color"
             android:gravity="center_vertical|center_horizontal" />
 
         <ListView
+            android:visibility="gone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/game_list" />
     </LinearLayout>
+    
 
 </LinearLayout>

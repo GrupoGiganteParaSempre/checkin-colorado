@@ -1,8 +1,11 @@
 package me.gpsbr.check_in;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -10,27 +13,43 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ListView;
+import android.widget.Switch;
 import android.widget.TextView;
 
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
+import com.parse.ParseAnalytics;
+
+import org.json.JSONObject;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Controller da atividade "Checkin"
- * Esta atividade é mostrada logo após o login, tem como objetivo mostrar uma lista de partidas
- * cujo checkin está aberto. Normalmente, o clube abre apenas uma partida por vês mas o controller
- * prevê a possibilidade da abertura de checkin para mais de uma partida.
+ * Controller da atividade "CheckinCard"
+ * Esta atividade visa listar os cartões disponíveis para serem usados para fazer checkin em uma
+ * determinada partida. Ao selecionar o cartão, o usuário é direcionado para a seleção de setores
+ * disponíveis.
  *
  * @author   Gustavo Seganfredo <gustavosf@gmail.com>
- * @since    1.0
+ * @since    1.1
  */
-public class CheckinActivity extends Activity {
+public class CheckinCardActivity extends Activity {
 
     public final static String EXTRA_GAME_ID = "me.gpsbr.checkin.GAME_ID";
+    public final static String EXTRA_CARD_ID = "me.gpsbr.checkin.CARD_ID";
+
+    protected int gameId;
+    protected Game game;
 
     // UI Refs
-    protected ListView mGameList;
+    protected ListView mCardList;
+    protected View mProgress;
     protected TextView mCheckinClosedMessage;
 
     // ------------------------------------------------------------------------------------- //
@@ -40,12 +59,17 @@ public class CheckinActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // setContentView(R.layout.activity_checkin_card);
         setContentView(R.layout.activity_checkin);
 
         // Inicialização das referências de UI
-        mGameList = (ListView) findViewById(R.id.game_list);
+        mCardList = (ListView) findViewById(R.id.game_list);
         mCheckinClosedMessage = (TextView) findViewById(R.id.checkin_closed_message);
-        ((TextView) findViewById(R.id.subtitle)).setText("Jogos");
+        mProgress = findViewById(R.id.progress);
+        ((TextView) findViewById(R.id.subtitle)).setText("Cartões");
+
+        Intent intent = getIntent();
+        gameId = intent.getIntExtra(CheckinActivity.EXTRA_GAME_ID, 0);
     }
 
     @Override
@@ -56,6 +80,7 @@ public class CheckinActivity extends Activity {
 
     @Override
     protected void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putInt("gameId", gameId);
         App.saveState(savedInstanceState);
         super.onSaveInstanceState(savedInstanceState);
     }
@@ -63,7 +88,14 @@ public class CheckinActivity extends Activity {
     @Override
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
+        gameId = savedInstanceState.getInt("gameId");
         App.restoreState(savedInstanceState);
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        overridePendingTransition(R.anim.activity_slide_in_left, R.anim.activity_slide_out_right);
     }
 
     @Override
@@ -74,8 +106,14 @@ public class CheckinActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
         switch (item.getItemId()) {
             // Respond to the action bar's Up/Home button
+            case android.R.id.home:
+                finish();
+                overridePendingTransition(R.anim.activity_slide_in_left, R.anim.activity_slide_out_right);
+                break;
             case R.id.action_logout:
                 App.logout();
                 break;
@@ -94,15 +132,35 @@ public class CheckinActivity extends Activity {
      * Gera a interface, populando a lista de jogos com os jogos
      */
     private void buildInterface() {
-        if (App.games.isEmpty()) {
-            // Checkin fechado, esconde a lista de jogos e mostra mensagem
-            mCheckinClosedMessage.setVisibility(View.VISIBLE);
-            mGameList.setVisibility(View.GONE);
+        game = App.getGame(gameId);
+
+        if (App.cards.isEmpty()) {
+            // Busca no servidor a lista de cartões do vivente
+            mProgress.setVisibility(View.VISIBLE);
+            String url = "http://www.internacional.com.br/checkin/public/index/jogo?id=" + game.getId();
+            (new JSONClient(url, new JSONClientCallbackInterface() {
+                @Override
+                public void success(JSONObject json) {
+                    mProgress.setVisibility(View.GONE);
+                    if (json.optString("erro").equals("")) {
+                        // Caso nao retorne nenhuma mensagem de erro, e porque possui cartoes
+                        // elegiveis para check-in. Prossegue exibindo a interface
+                        App.cards = (new App.Scrapper(json)).getCards();
+                        buildInterface();
+                    }
+                    else
+                    {
+                        // Trata o caso de a pessoa não possuir cartões elegíveis para check-in
+                        mCheckinClosedMessage.setText(json.optString("erro"));
+                        mCheckinClosedMessage.setVisibility(View.VISIBLE);
+                    }
+                }
+            })).execute((Void) null);
         } else {
-            // Monta lista de jogos
-            ArrayAdapter<Game> adapter = new GameListAdapter();
-            mGameList.setVisibility(View.VISIBLE);
-            mGameList.setAdapter(adapter);
+            // Monta lista de cartões na interface
+            ArrayAdapter<Card> adapter = new CardListAdapter();
+            mCardList.setVisibility(View.VISIBLE);
+            mCardList.setAdapter(adapter);
             registerClickCallback();
         }
     }
@@ -116,8 +174,9 @@ public class CheckinActivity extends Activity {
             @Override
             public void onItemClick(AdapterView<?> parent, View viewClicked,
                                     int position, long id) {
-                Intent intent = new Intent(CheckinActivity.this, CheckinCardActivity.class);
-                intent.putExtra(EXTRA_GAME_ID, position);
+                Intent intent = new Intent(CheckinCardActivity.this, CheckinGameActivity.class);
+                intent.putExtra(EXTRA_GAME_ID, gameId);
+                intent.putExtra(EXTRA_CARD_ID, position);
                 startActivity(intent);
                 overridePendingTransition(R.anim.activity_slide_in_right, R.anim.activity_slide_out_left);
             }
@@ -127,9 +186,9 @@ public class CheckinActivity extends Activity {
     /**
      * Adapter para mostrar os jogos no formato de lista
      */
-    private class GameListAdapter extends ArrayAdapter<Game> {
-        public GameListAdapter() {
-            super(CheckinActivity.this, R.layout.game_list_view, App.games);
+    private class CardListAdapter extends ArrayAdapter<Card> {
+        public CardListAdapter() {
+            super(CheckinCardActivity.this, R.layout.game_list_view, App.cards);
         }
 
         @Override
@@ -139,19 +198,20 @@ public class CheckinActivity extends Activity {
                 itemView = getLayoutInflater().inflate(R.layout.game_list_view, parent, false);
             }
 
-            Game currentGame = App.games.get(position);
+            Card currentCard = App.cards.get(position);
 
             TextView tv;
             tv = (TextView)itemView.findViewById(R.id.game_tournament);
-            tv.setText(currentGame.getTournament());
+            tv.setText(currentCard.getAssociationType());
             tv = (TextView)itemView.findViewById(R.id.game_players);
-            tv.setText(currentGame.getHome()+" x "+currentGame.getAway());
+            tv.setText(currentCard.getId());
             tv = (TextView)itemView.findViewById(R.id.game_date);
-            tv.setText(currentGame.getDate());
+            tv.setText(currentCard.getName());
             tv = (TextView)itemView.findViewById(R.id.game_venue);
-            tv.setText(currentGame.getVenue());
+            tv.setText("");
 
             return itemView;
         }
     }
+
 }

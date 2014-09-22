@@ -36,6 +36,13 @@ public class Game implements Parcelable {
         this.venue = venue;
         this.date = date;
         this.tournament = tournament;
+
+        // Pré-popula os setores
+        // TODO : Fazer dinamicamente. O código dos setores pode mudar
+        addSector(new Sector("78", "SUPERIOR CADEIRA LIVRE NORTE", "Rampas 1 e 2"));
+        addSector(new Sector("77", "SUPERIOR CADEIRA LIVRE SUL", "Rampas 3 e 4"));
+        addSector(new Sector("58", "INFERIOR CADEIRA LIVRE NORTE", "Portões 2, 4 e 5"));
+        addSector(new Sector("57", "INFERIOR CADEIRA LIVRE SUL", "Portões 5, 6 e 8"));
     }
 
     /* ********************* */
@@ -169,7 +176,6 @@ public class Game implements Parcelable {
      * @param status true para liberar, false para bloquear
      */
     public void enableCheckin(Boolean status) { checkinOpen = status; }
-
 
     /**
      * Adiciona um setor para este jogo
