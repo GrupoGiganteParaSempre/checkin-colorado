@@ -19,14 +19,9 @@ import android.media.MediaScannerConnection;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
 import android.text.method.LinkMovementMethod;
-import android.util.Log;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,10 +36,6 @@ import com.squareup.okhttp.Response;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -320,15 +311,19 @@ public class App extends Application {
     }
 
     /**
-     * Salva o recibo de check-in na memória do aparelho
+     * Salva o recibo de check-in/out na memória do aparelho
      *
-     * @param game      Jogo para o qual foi feito o checkin
-     * @param checkinId Id do check-in conforme sistema do inter
+     * @param game Jogo para o qual foi feito o check*in/out
+     * @param card Cartão onde foi feito o check-in/out
+     * @param data Dados do check-in/out
      */
-    public static void printReceipt(Game game,String checkinId) {
+    public static void printReceipt(Game game, Card card, JSONObject data) {
         // Busca o template do comprovante nos resources
+        Boolean in = data.optString("fila") == "";
+
         Resources res = App.context.getResources();
-        Bitmap bitmap = (BitmapFactory.decodeResource(res, R.drawable.comprovante))
+        int resId = in ? R.drawable.comprovante_checkin : R.drawable.comprovante_checkout;
+        Bitmap bitmap = (BitmapFactory.decodeResource(res, resId))
                 .copy(Bitmap.Config.ARGB_8888, true);
         Canvas canvas = new Canvas(bitmap);
 
@@ -337,15 +332,20 @@ public class App extends Application {
         paint.setTextSize(18);
 
         // Pinta os dados sobre o comprovante
-        canvas.drawText(checkinId, 170, 511, paint);
-        canvas.drawText("Inter X "+game.getAway(), 131, 540, paint);
-        canvas.drawText(game.getDate(), 129, 569, paint);
-        canvas.drawText(game.getVenue(), 155, 598, paint);
+        canvas.drawText(data.optString("sid"), 233, 511, paint);
+        canvas.drawText("Inter X "+game.getAway(), 196, 540, paint);
+        canvas.drawText(game.getDate(), 194, 570, paint);
+        canvas.drawText(game.getVenue(), 219, 598, paint);
+        if (!in) {
+            canvas.drawText(data.optString("codigosetor"), 185, 689, paint);
+            canvas.drawText(data.optString("fila"), 266, 689, paint);
+            canvas.drawText(data.optString("nrlugar"), 357, 689, paint);
+        }
 
         // Salva o bitmap :)
         File file = new File(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                "Checkin/checkin "+game.getId()+".jpg");
+                "Checkin/check"+(in?"in-":"out-")+card.getId()+"-"+game.getId()+".jpg");
         file.mkdirs();
         if (file.exists()) file.delete();
         try {

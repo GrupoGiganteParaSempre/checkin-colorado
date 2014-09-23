@@ -4,7 +4,9 @@ import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,8 +23,10 @@ public class Card implements Parcelable {
     protected String key;
     protected String name;
     protected String associationType;
+    protected List<String> operations = new ArrayList<String>();
     protected Map<String, Boolean> checkinAvailable = new HashMap<String, Boolean>();
     protected Map<String, String[]> checkin = new HashMap<String, String[]>();
+    protected Map<String, String> checkout = new HashMap<String, String>();
 
     public Card(String id, String key, String name, String associationType) {
         super();
@@ -42,6 +46,7 @@ public class Card implements Parcelable {
         this.key = parcel.readString();
         this.name = parcel.readString();
         this.associationType = parcel.readString();
+        parcel.readStringList(this.operations);
 
         Bundle b = parcel.readBundle();
         for (String k : b.keySet()) {
@@ -51,6 +56,11 @@ public class Card implements Parcelable {
         b = parcel.readBundle();
         for (String k : b.keySet()) {
             this.checkin.put(k, b.getStringArray(k));
+        }
+
+        b = parcel.readBundle();
+        for (String k : b.keySet()) {
+            this.checkout.put(k, b.getString(k));
         }
     }
 
@@ -63,6 +73,7 @@ public class Card implements Parcelable {
         parcel.writeString(key);
         parcel.writeString(name);
         parcel.writeString(associationType);
+        parcel.writeStringList(operations);
 
         Bundle b = new Bundle();
         for (Map.Entry<String, Boolean> e : checkinAvailable.entrySet()) {
@@ -73,6 +84,11 @@ public class Card implements Parcelable {
         b = new Bundle();
         for (Map.Entry<String, String[]> e : checkin.entrySet()) {
             b.putStringArray(e.getKey(), e.getValue());
+        }
+
+        b = new Bundle();
+        for (Map.Entry<String, String> e : checkout.entrySet()) {
+            b.putString(e.getKey(), e.getValue());
         }
     }
 
@@ -93,6 +109,16 @@ public class Card implements Parcelable {
      */
     public Boolean isCheckedIn(Game game) {
         return checkin.containsKey(game.getId());
+    }
+
+    /**
+     * Retorna se um cartão fez checkin para um determinado jogo
+     *
+     * @param game Objeto do jogo alvo
+     * @return     true se o cartão fez checkin para o jogo, do contrário falso
+     */
+    public Boolean isCheckedOut(Game game) {
+        return checkout.containsKey(game.getId());
     }
 
     // Getters
@@ -143,6 +169,17 @@ public class Card implements Parcelable {
     }
 
     /**
+     * Faz check-out para um determinado jogo
+     *
+     * @param game       Jogo alvo
+     * @param checkoutid ID do checkout
+     */
+    public void checkout(Game game, String checkoutId) { checkout.put(game.getId(), checkoutId); }
+    public void checkout(Game game) {
+        checkin.remove(game.getId());
+    }
+
+    /**
      * Libera checkin para um determinado jogo para este cartão
      *
      * @param game Jogo alvo
@@ -152,11 +189,41 @@ public class Card implements Parcelable {
     }
 
     /**
-     * Desfaz um checkin em um determinado jogo, vulgo check-out
+     * Inclui um código de operação para este cartão
      *
-     * @param game Jogo alvo
+     * @param code Código de operação
      */
-    public void checkout(Game game) {
-        checkin.remove(game.getId());
+    public void addOperation(String code) {
+        operations.add(code);
+    }
+
+    /**
+     * Verifica se o cartão suporta uma determinada operação
+     *
+     * @param operation Operação (checkin ou checkout)
+     * @return          True se suporta, falso do contrário
+     */
+    public Boolean hasOperation(String operation) {
+        String code;
+        if (operation.equals("checkin")) code = "100";
+        else if (operation.equals("checkout")) code = "200";
+        else code = "0";
+        return operations.contains(code);
+    }
+
+    @Override
+    public String toString() {
+        String str;
+        str = "{\n";
+        str = str + "\tid:"+id+",\n";
+        str = str + "\tkey:"+key+",\n";
+        str = str + "\name:"+name+",\n";
+        str = str + "\tassociationType:"+associationType+",\n";
+        str = str + "\toperations:"+operations.toString()+",\n";
+        str = str + "\tcheckinAvailable:"+checkinAvailable.toString()+",\n";
+        str = str + "\tcheckin:"+checkin.toString()+",\n";
+        str = str + "\tcheckout:"+checkout.toString()+",\n";
+        str = str + "}";
+        return str;
     }
 }

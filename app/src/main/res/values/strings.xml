@@ -48,7 +48,12 @@
     <string name="error_no_sector_message">Você precisa selecionar um setor para o jogo</string>
     <string name="error_no_checkin_made">Você ainda não fez check-in</string>
     <string name="checkin_sucessfull" formatted="false">A comunicação de que você VAI a esta partida foi enviada, e o comprovante salvo na galeria do seu dispositivo.</string>
-    <string name="checkout_sucessfull">Cancelamento do check-in efetuado com sucesso!</string>
+    <string name="checkin_cancel_sucessfull">Cancelamento do check-in efetuado com sucesso!</string>
+    <string name="checkout_sucessfull">O seu check-out para esta partida foi confirmado com sucesso, e o comprovante salvo na galeria do seu dispositivo.</string>
+    <string name="checkin_question_in">Vai ao jogo?</string>
+    <string name="checkin_question_out">Fazer check-out?</string>
+    <string name="checkedout_message">Você já efetuou o check-out para esta partida</string>
+    <string name="checkout_warning">Aviso\nO procedimento de check-out é irreversível</string>
     <string name="going_question">Vai ao jogo?</string>
     <string name="yes_or_no">Sim/Não</string>
     <string name="choose_your_sector">Escolha seu setor</string>
@@ -59,5 +64,6 @@
 
     <!-- CheckinCardActivity -->
     <string name="title_activity_checkin_card">Check-in</string>
+    <string name="checkout_sucessfull_title">Check-out efetuado</string>
 
 </resources>
