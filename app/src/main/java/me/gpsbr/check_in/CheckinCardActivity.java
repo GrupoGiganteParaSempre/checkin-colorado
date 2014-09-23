@@ -1,35 +1,19 @@
 package me.gpsbr.check_in;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.StrictMode;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.Switch;
 import android.widget.TextView;
 
-import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
-import com.parse.ParseAnalytics;
-
 import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Controller da atividade "CheckinCard"
@@ -134,6 +118,10 @@ public class CheckinCardActivity extends Activity {
      */
     private void buildInterface() {
         game = App.getGame(gameId);
+
+        // Esconde algumas coisas que podem ficar visíveis num resume
+        mCheckinClosedMessage.setVisibility(View.GONE);
+        mCardList.setVisibility(View.GONE);
 
         if (App.cards.isEmpty()) {
             // Busca no servidor a lista de cartões do vivente

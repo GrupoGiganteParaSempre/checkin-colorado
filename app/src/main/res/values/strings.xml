@@ -64,5 +64,6 @@
 
     <!-- CheckinCardActivity -->
     <string name="title_activity_checkin_card">Check-in</string>
+    <string name="checkout_sucessfull_title">Check-out efetuado</string>
 
 </resources>

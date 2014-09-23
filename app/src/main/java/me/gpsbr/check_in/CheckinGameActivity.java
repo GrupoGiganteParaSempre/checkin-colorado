@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -161,6 +160,14 @@ public class CheckinGameActivity extends Activity {
         game = App.getGame(gameId);
         card = App.getCard(cardId);
 
+        // Esconde alguamas coisas que podem voltar visíveis em um resume
+        mViewCheckin.setVisibility(View.GONE);
+        mCheckinUnavailableMessage.setVisibility(View.GONE);
+        mCheckinEndedContainer.setVisibility(View.GONE);
+        mCheckinEndedMessage.setVisibility(View.GONE);
+        mMessageCheckout.setVisibility(View.GONE);
+
+        // Tacale pau na interface
         mProgress.setVisibility(View.VISIBLE);
         ((TextView) findViewById(R.id.game_home)).setText(game.getHome());
         ((TextView) findViewById(R.id.game_away)).setText(game.getAway());
@@ -329,11 +336,12 @@ public class CheckinGameActivity extends Activity {
                     // Para check-in ou cancelamento de check-in
                     String message = getString(checked ? R.string.checkin_sucessfull : R.string.checkin_cancel_sucessfull);
                     App.Dialog.showAlert(CheckinGameActivity.this,
-                            message, (checked ? "Checkin" : "Cancelamento") + " efetuado");
+                            message, (checked ? "Check-in" : "Cancelamento") + " efetuado");
                 } else {
                     // Para check-out
                     App.Dialog.showAlert(CheckinGameActivity.this,
-                            getString(R.string.checkout_sucessfull));
+                            getString(R.string.checkout_sucessfull),
+                            getString(R.string.checkout_sucessfull_title));
                     // Esconde o formulário de checkout
                     mViewCheckin.setVisibility(View.GONE);
                     // Mostra a confirmação de que o cara já fez checkout
