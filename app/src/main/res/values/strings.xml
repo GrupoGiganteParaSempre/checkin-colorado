@@ -50,7 +50,7 @@
     <string name="checkin_sucessfull" formatted="false">A comunicação de que você VAI a esta partida foi enviada, e o comprovante salvo na galeria do seu dispositivo.</string>
     <string name="checkout_sucessfull">Cancelamento do check-in efetuado com sucesso!</string>
     <string name="checkin_question_in">Vai ao jogo?</string>
-    <string name="checkin_question_out">Realizar check-out?</string>
+    <string name="checkin_question_out">Fazer check-out?</string>
     <string name="checkedout_message">Você já efetuou o check-out para esta partida</string>
     <string name="checkout_warning">Aviso\nO procedimento de check-out é irreversível</string>
     <string name="going_question">Vai ao jogo?</string>

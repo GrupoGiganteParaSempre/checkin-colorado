@@ -76,7 +76,8 @@
         android:layout_width="fill_parent"
         android:layout_height="0dp"
         android:layout_weight="2"
-        android:padding="@dimen/activity_vertical_margin">
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:paddingBottom="@dimen/activity_vertical_margin">
 
         <TextView
             android:layout_width="wrap_content"
@@ -149,6 +150,17 @@
                             android:id="@+id/checkin_switch" />
                     </FrameLayout>
                 </LinearLayout>
+                <TextView
+                    android:id="@+id/checkout_warning"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="@string/checkout_warning"
+                    android:gravity="center"
+                    android:visibility="gone"
+                    android:textStyle="bold"
+                    android:textColor="@color/checkinwhite_dual_color" />
                 <Button
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -203,18 +215,6 @@
             android:gravity="center"
             android:textStyle="bold"
             android:visibility="gone"
-            android:textColor="@color/checkinwhite_dual_color" />
-
-        <TextView
-            android:id="@+id/checkout_warning"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="@string/checkout_warning"
-            android:gravity="center"
-            android:visibility="gone"
-            android:textStyle="bold"
             android:textColor="@color/checkinwhite_dual_color" />
 
         <LinearLayout

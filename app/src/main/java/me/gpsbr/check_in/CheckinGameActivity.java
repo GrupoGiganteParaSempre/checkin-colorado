@@ -246,14 +246,11 @@ public class CheckinGameActivity extends Activity {
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     // Mostra o resto do form em caso de sim, senao esconde
                     boolean on = buttonView.isChecked();
-                    Log.d(App.TAG, card.toString());
                     if (card.hasOperation("checkin")) {
-                        Log.d(App.TAG, "checkin");
                         // Em caso de check-in, mostra o form
                         mButtonSectorSelection.setVisibility(on ? View.VISIBLE : View.GONE);
                         mButtonConfirm.setEnabled(on || card.isCheckedIn(game));
                     } else if (card.hasOperation("checkout")) {
-                        Log.d(App.TAG, "checkout");
                         // Em caso de check-out, mostra o warning
                         mWarningCheckout.setVisibility(on ? View.VISIBLE : View.GONE);
                         mButtonConfirm.setEnabled(on);

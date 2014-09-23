@@ -15,6 +15,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -207,8 +208,8 @@ public class CheckinCardActivity extends Activity {
             tv.setText(currentCard.getId());
             tv = (TextView)itemView.findViewById(R.id.game_date);
             tv.setText(currentCard.getName());
-            tv = (TextView)itemView.findViewById(R.id.game_venue);
-            tv.setText("");
+            ((LinearLayout)itemView.findViewById(R.id.list_container))
+                    .removeView(itemView.findViewById(R.id.game_venue));
 
             return itemView;
         }
