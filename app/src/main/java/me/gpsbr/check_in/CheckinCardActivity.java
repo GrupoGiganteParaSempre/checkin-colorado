@@ -142,6 +142,10 @@ public class CheckinCardActivity extends Activity {
             (new JSONClient(url, new JSONClientCallbackInterface() {
                 @Override
                 public void success(JSONObject json) {
+                    if (json == null || json.optInt("status") == 0) {
+                        App.toaster(getString(R.string.error_network));
+                        finish();
+                    }
                     mProgress.setVisibility(View.GONE);
                     if (json.optString("erro").equals("")) {
                         // Caso nao retorne nenhuma mensagem de erro, e porque possui cartoes

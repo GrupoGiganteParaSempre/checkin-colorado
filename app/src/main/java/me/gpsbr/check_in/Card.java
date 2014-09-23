@@ -26,7 +26,7 @@ public class Card implements Parcelable {
     protected List<String> operations = new ArrayList<String>();
     protected Map<String, Boolean> checkinAvailable = new HashMap<String, Boolean>();
     protected Map<String, String[]> checkin = new HashMap<String, String[]>();
-    protected Map<String, String[]> checkout = new HashMap<String, String[]>();
+    protected Map<String, String> checkout = new HashMap<String, String>();
 
     public Card(String id, String key, String name, String associationType) {
         super();
@@ -60,7 +60,7 @@ public class Card implements Parcelable {
 
         b = parcel.readBundle();
         for (String k : b.keySet()) {
-            this.checkout.put(k, b.getStringArray(k));
+            this.checkout.put(k, b.getString(k));
         }
     }
 
@@ -87,8 +87,8 @@ public class Card implements Parcelable {
         }
 
         b = new Bundle();
-        for (Map.Entry<String, String[]> e : checkout.entrySet()) {
-            b.putStringArray(e.getKey(), e.getValue());
+        for (Map.Entry<String, String> e : checkout.entrySet()) {
+            b.putString(e.getKey(), e.getValue());
         }
     }
 
@@ -169,21 +169,23 @@ public class Card implements Parcelable {
     }
 
     /**
+     * Faz check-out para um determinado jogo
+     *
+     * @param game       Jogo alvo
+     * @param checkoutid ID do checkout
+     */
+    public void checkout(Game game, String checkoutId) { checkout.put(game.getId(), checkoutId); }
+    public void checkout(Game game) {
+        checkin.remove(game.getId());
+    }
+
+    /**
      * Libera checkin para um determinado jogo para este cartão
      *
      * @param game Jogo alvo
      */
     public void enableCheckin(Game game) {
         checkinAvailable.put(game.getId(), true);
-    }
-
-    /**
-     * Desfaz um checkin em um determinado jogo, vulgo check-out
-     *
-     * @param game Jogo alvo
-     */
-    public void checkout(Game game) {
-        checkin.remove(game.getId());
     }
 
     /**
