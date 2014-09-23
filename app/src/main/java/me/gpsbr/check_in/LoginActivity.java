@@ -212,11 +212,16 @@ public class LoginActivity extends Activity {
                             mRegistrationNumber.setError(getString(R.string.error_invalid_registration_number));
                             mRegistrationNumber.requestFocus();
                         }
-                        else {
-                            // Caso contrário, considera erro na senha
+                        else if (json.optString("msg").contains("Matricula ou senha")) {
+                            // Erro na senha então
                             showForm();
                             mPassword.setError(getString(R.string.error_incorrect_password));
                             mPassword.requestFocus();
+                        }
+                        else {
+                            // Erro interno no site do inter então!
+                            showForm();
+                            App.toaster(json.optString("msg"));
                         }
                     } else {
                         // Sem erro, login efetuado
