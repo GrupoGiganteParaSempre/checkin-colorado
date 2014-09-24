@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -204,6 +205,7 @@ public class LoginActivity extends Activity {
             App.client.get(url, null, new JsonHttpResponseHandler() {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, JSONObject json) {
+                    Log.d(App.TAG, "success: " + String.valueOf(statusCode) + " " + json.toString());
                     if (json.optInt("status", 0) == 0) {
                         // Status 0 significa erro de senha ou matrícula
                         if (json.optString("msg").contains("Erro ao processar")) {
@@ -237,6 +239,12 @@ public class LoginActivity extends Activity {
                         startActivity(intent);
                         finish();
                     }
+                }
+                @Override
+                public void onFailure(int statusCode, org.apache.http.Header[] headers,
+                                      Throwable throwable, JSONObject errorResponse) {
+                    showForm();
+                    App.toaster(getString(R.string.error_network));
                 }
             });
         }

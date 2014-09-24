@@ -180,7 +180,7 @@ public class CheckinGameActivity extends Activity {
         App.client.get("checkin/opcoes?cartao=" + card.getId(), null, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject json) {
-                if (json == null || json.optInt("status") == 0) {
+                if (json.optInt("status") == 0) {
                     App.toaster(getString(R.string.error_network));
                     finish();
                     return;
@@ -208,6 +208,12 @@ public class CheckinGameActivity extends Activity {
 
                 mProgress.setVisibility(View.GONE);
                 buildInterface2();
+            }
+            @Override
+            public void onFailure(int statusCode, org.apache.http.Header[] headers,
+                                  Throwable throwable, JSONObject errorResponse) {
+                App.toaster(getString(R.string.error_network));
+                finish();
             }
         });
     }
@@ -309,8 +315,7 @@ public class CheckinGameActivity extends Activity {
 
                 // Trata problemas de rede e no servidor do clube
                 if (json.optInt("status") == 0) {
-                    App.Dialog.showAlert(CheckinGameActivity.this,
-                            getString(R.string.error_network), "Erro");
+                    App.toaster(getString(R.string.error_network));
                     return;
                 }
 
@@ -362,6 +367,12 @@ public class CheckinGameActivity extends Activity {
                 if (isCheckin)
                     t.send(new HitBuilders.EventBuilder().setCategory("sector")
                             .setAction(checkedSector.name).build());
+            }
+            @Override
+            public void onFailure(int statusCode, org.apache.http.Header[] headers,
+                                  Throwable throwable, JSONObject errorResponse) {
+                App.Dialog.dismissProgress();
+                App.toaster(getString(R.string.error_network));
             }
         });
     }

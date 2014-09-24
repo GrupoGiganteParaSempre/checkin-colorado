@@ -149,6 +149,12 @@ public class CheckinCardActivity extends Activity {
                         mCheckinClosedMessage.setVisibility(View.VISIBLE);
                     }
                 }
+                @Override
+                public void onFailure(int statusCode, org.apache.http.Header[] headers,
+                                      Throwable throwable, JSONObject errorResponse) {
+                    App.toaster(getString(R.string.error_network));
+                    finish();
+                }
             });
         } else {
             // Monta lista de cartões na interface
