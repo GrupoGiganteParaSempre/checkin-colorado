@@ -37,6 +37,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -192,6 +193,9 @@ public class App extends Application {
     public static String data(String key) {
         return data.getString(key, "");
     }
+    public static Set<String> dataSet(String key) {
+        return data.getStringSet(key, new HashSet<String>());
+    }
 
     /**
      * Proxy para o armazenameto de dados básico do app, usando key-value
@@ -203,6 +207,11 @@ public class App extends Application {
     public static Boolean data(String key, String value) {
         SharedPreferences.Editor editor = data.edit();
         editor.putString(key, value);
+        return editor.commit();
+    }
+    public static Boolean dataSet(String key, Set<String> value) {
+        SharedPreferences.Editor editor = data.edit();
+        editor.putStringSet(key, value);
         return editor.commit();
     }
 

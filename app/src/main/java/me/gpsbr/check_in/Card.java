@@ -1,13 +1,20 @@
 package me.gpsbr.check_in;
 
+import android.app.Application;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Model do cartão
@@ -120,7 +127,8 @@ public class Card implements Parcelable {
      * @return     true se o cartão fez checkin para o jogo, do contrário falso
      */
     public Boolean isCheckedOut(Game game) {
-        return checkout.containsKey(game.getId());
+        Boolean is = checkout.containsKey(game.getId());
+        return is || App.dataSet("checkouts").contains(game.getId()+":"+id);
     }
 
     // Getters
@@ -174,9 +182,16 @@ public class Card implements Parcelable {
      * Faz check-out para um determinado jogo
      *
      * @param game       Jogo alvo
-     * @param checkoutid ID do checkout
+     * @param checkoutId ID do checkout
      */
-    public void checkout(Game game, String checkoutId) { checkout.put(game.getId(), checkoutId); }
+    public void checkout(Game game, String checkoutId) {
+        checkout.put(game.getId(), checkoutId);
+
+        // Registra o checkout na memória do app, já que o sistema do inter ainda não registra
+        Set<String> checkouts = App.dataSet("checkouts");
+        checkouts.add(game.getId()+":"+id);
+        App.dataSet("checkouts", checkouts);
+    }
     public void checkout(Game game) {
         checkin.remove(game.getId());
     }
