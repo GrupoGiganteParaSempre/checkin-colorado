@@ -3,6 +3,7 @@ package me.gpsbr.check_in;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -132,7 +133,7 @@ public class CheckinCardActivity extends Activity {
             App.client.get("index/jogo?id=" + game.getId(), null, new JsonHttpResponseHandler() {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, JSONObject json) {
-                    if (json == null || json.optInt("status") == 0) {
+                    if (json.optInt("status") == 0 && json.optString("erro").contains("Error")) {
                         App.toaster(getString(R.string.error_network));
                         finish();
                     }
@@ -142,9 +143,7 @@ public class CheckinCardActivity extends Activity {
                         // elegiveis para check-in. Prossegue exibindo a interface
                         App.cards = (new App.Scrapper(json)).getCards();
                         buildInterface();
-                    }
-                    else
-                    {
+                    } else {
                         // Trata o caso de a pessoa não possuir cartões elegíveis para check-in
                         mCheckinClosedMessage.setText(json.optString("erro"));
                         mCheckinClosedMessage.setVisibility(View.VISIBLE);

@@ -308,7 +308,7 @@ public class CheckinGameActivity extends Activity {
                 App.Dialog.dismissProgress();
 
                 // Trata problemas de rede e no servidor do clube
-                if (json == null || json.optInt("status") == 0) {
+                if (json.optInt("status") == 0) {
                     App.Dialog.showAlert(CheckinGameActivity.this,
                             getString(R.string.error_network), "Erro");
                     return;
