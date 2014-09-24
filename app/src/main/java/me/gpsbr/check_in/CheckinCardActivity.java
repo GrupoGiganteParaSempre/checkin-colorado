@@ -13,6 +13,9 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.loopj.android.http.JsonHttpResponseHandler;
+
+import org.apache.http.Header;
 import org.json.JSONObject;
 
 /**
@@ -126,10 +129,9 @@ public class CheckinCardActivity extends Activity {
         if (App.cards.isEmpty()) {
             // Busca no servidor a lista de cartões do vivente
             mProgress.setVisibility(View.VISIBLE);
-            String url = "http://www.internacional.com.br/checkin/public/index/jogo?id=" + game.getId();
-            (new JSONClient(url, new JSONClientCallbackInterface() {
+            App.client.get("index/jogo?id=" + game.getId(), null, new JsonHttpResponseHandler() {
                 @Override
-                public void success(JSONObject json) {
+                public void onSuccess(int statusCode, Header[] headers, JSONObject json) {
                     if (json == null || json.optInt("status") == 0) {
                         App.toaster(getString(R.string.error_network));
                         finish();
@@ -148,7 +150,7 @@ public class CheckinCardActivity extends Activity {
                         mCheckinClosedMessage.setVisibility(View.VISIBLE);
                     }
                 }
-            })).execute((Void) null);
+            });
         } else {
             // Monta lista de cartões na interface
             ArrayAdapter<Card> adapter = new CardListAdapter();

@@ -15,8 +15,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.loopj.android.http.JsonHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
 import com.parse.ParseAnalytics;
 
+import org.apache.http.Header;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
@@ -192,33 +197,26 @@ public class LoginActivity extends Activity {
             hideForm();
 
             // Monta o post
-            Map<String, String> postValues = new HashMap<String, String>();
-            postValues.put("matricula", registration_number);
-            postValues.put("senha", password);
-            String url = getString(R.string.url_login);
-
-            JSONClient jsonClient = new JSONClient(url, postValues, new JSONClientCallbackInterface() {
+//            RequestParams params = new RequestParams();
+//            params.put("matricula", registration_number);
+//            params.put("senha", password);
+            String url = "?matricula="+registration_number+"&senha="+password;
+            App.client.get(url, null, new JsonHttpResponseHandler() {
                 @Override
-                public void success(JSONObject json) {
-                    if (json == null) {
-                        // Vazio significa um erro de conexão
-                        showForm();
-                        App.toaster(getString(R.string.error_network));
-                    } else if (json.optInt("status", 0) == 0) {
+                public void onSuccess(int statusCode, Header[] headers, JSONObject json) {
+                    if (json.optInt("status", 0) == 0) {
                         // Status 0 significa erro de senha ou matrícula
                         if (json.optString("msg").contains("Erro ao processar")) {
                             // Mensagem típica de erro na matrícula
                             showForm();
                             mRegistrationNumber.setError(getString(R.string.error_invalid_registration_number));
                             mRegistrationNumber.requestFocus();
-                        }
-                        else if (json.optString("msg").contains("Matricula ou senha")) {
+                        } else if (json.optString("msg").contains("Matricula ou senha")) {
                             // Erro na senha então
                             showForm();
                             mPassword.setError(getString(R.string.error_incorrect_password));
                             mPassword.requestFocus();
-                        }
-                        else {
+                        } else {
                             // Erro interno no site do inter então!
                             showForm();
                             App.toaster(json.optString("msg"));
@@ -241,7 +239,6 @@ public class LoginActivity extends Activity {
                     }
                 }
             });
-            jsonClient.execute((Void) null);
         }
     }
 
