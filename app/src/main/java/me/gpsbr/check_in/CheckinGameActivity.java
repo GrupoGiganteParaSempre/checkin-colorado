@@ -16,8 +16,10 @@ import android.widget.TextView;
 
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
+import com.loopj.android.http.JsonHttpResponseHandler;
 import com.parse.ParseAnalytics;
 
+import org.apache.http.Header;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -175,11 +177,9 @@ public class CheckinGameActivity extends Activity {
         ((TextView) findViewById(R.id.game_date)).setText(game.getDate());
         ((TextView) findViewById(R.id.game_tournament)).setText(game.getTournament());
 
-        String url = "http://www.internacional.com.br/checkin/public/checkin/opcoes?cartao=" +
-                card.getId();
-        (new JSONClient(url, new JSONClientCallbackInterface() {
+        App.client.get("checkin/opcoes?cartao=" + card.getId(), null, new JsonHttpResponseHandler() {
             @Override
-            public void success(JSONObject json) {
+            public void onSuccess(int statusCode, Header[] headers, JSONObject json) {
                 if (json == null || json.optInt("status") == 0) {
                     App.toaster(getString(R.string.error_network));
                     finish();
@@ -209,7 +209,7 @@ public class CheckinGameActivity extends Activity {
                 mProgress.setVisibility(View.GONE);
                 buildInterface2();
             }
-        })).execute((Void) null);
+        });
     }
 
     private void buildInterface2() {
@@ -292,23 +292,23 @@ public class CheckinGameActivity extends Activity {
         String url;
 
         if (operation.equals("checkout")) {
-            url = "http://www.internacional.com.br/checkin/public/checkin/padrao?operacao=200";
+            url = "checkin/padrao?operacao=200";
             App.Dialog.showProgress(this, "Efetuando check-out...");
         }
         else {
             // checkin
-            if (checked) url = "http://www.internacional.com.br/checkin/public/checkin/padrao?operacao=100&setor=" + checkedSector.id;
-            else url = "http://www.internacional.com.br/checkin/public/checkin/cancelar?sid=" + card.getCheckinId(game);
+            if (checked) url = "checkin/padrao?operacao=100&setor=" + checkedSector.id;
+            else url = "checkin/cancelar?sid=" + card.getCheckinId(game);
             App.Dialog.showProgress(this, "Efetuando " + (checked ? "check-in" : "cancelamento do check-in") + "...");
         }
 
-        (new JSONClient(url, new JSONClientCallbackInterface() {
+        App.client.get(url, null, new JsonHttpResponseHandler() {
             @Override
-            public void success(JSONObject json) {
+            public void onSuccess(int statusCode, Header[] headers, JSONObject json) {
                 App.Dialog.dismissProgress();
 
                 // Trata problemas de rede e no servidor do clube
-                if (json == null || json.optInt("status") == 0) {
+                if (json.optInt("status") == 0) {
                     App.Dialog.showAlert(CheckinGameActivity.this,
                             getString(R.string.error_network), "Erro");
                     return;
@@ -363,7 +363,7 @@ public class CheckinGameActivity extends Activity {
                     t.send(new HitBuilders.EventBuilder().setCategory("sector")
                             .setAction(checkedSector.name).build());
             }
-        })).execute((Void) null);
+        });
     }
 
     /**

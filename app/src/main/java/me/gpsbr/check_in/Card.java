@@ -85,11 +85,13 @@ public class Card implements Parcelable {
         for (Map.Entry<String, String[]> e : checkin.entrySet()) {
             b.putStringArray(e.getKey(), e.getValue());
         }
+        parcel.writeBundle(b);
 
         b = new Bundle();
         for (Map.Entry<String, String> e : checkout.entrySet()) {
             b.putString(e.getKey(), e.getValue());
         }
+        parcel.writeBundle(b);
     }
 
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
