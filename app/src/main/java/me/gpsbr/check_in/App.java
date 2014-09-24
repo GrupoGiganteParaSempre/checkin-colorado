@@ -16,45 +16,29 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.media.MediaScannerConnection;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
 import android.text.method.LinkMovementMethod;
-import android.util.Log;
-import android.webkit.CookieManager;
-import android.webkit.CookieSyncManager;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.Tracker;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.PersistentCookieStore;
+import com.loopj.android.http.RequestParams;
 import com.parse.Parse;
 import com.parse.PushService;
-import com.squareup.okhttp.FormEncodingBuilder;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
 
-import org.json.JSONException;
 import org.json.JSONObject;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.CookieHandler;
-import java.net.CookiePolicy;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -73,12 +57,12 @@ public class App extends Application {
     protected static Context context;
     protected static SharedPreferences data;
 
-    public static OkHttpClient client;
-
     protected static ArrayList<Game> games = new ArrayList<Game>();
     protected static ArrayList<Card> cards = new ArrayList<Card>();
 
     protected static Set<String> parseSubscriptions;
+
+    public static CheckinClient client;
 
     // Google Analytics
     public enum TrackerName {
@@ -98,16 +82,7 @@ public class App extends Application {
         app = this;
         context = app.getApplicationContext();
         data = context.getSharedPreferences("data", MODE_PRIVATE);
-
-        CookieSyncManager.createInstance(this);
-        CookieManager.getInstance().setAcceptCookie(true);
-        CookieManager.getInstance().removeAllCookie();
-        WebkitCookieManagerProxy coreCookieManager = new WebkitCookieManagerProxy(null, CookiePolicy.ACCEPT_ALL);
-        CookieHandler.setDefault(coreCookieManager);
-
-        // Cria um client http com cookies
-        client = new OkHttpClient();
-        client.setCookieHandler(coreCookieManager);
+        client = new CheckinClient(this);
 
         // Initializing Parse
         Parse.initialize(this, getString(R.string.parse_app_id), getString(R.string.parse_app_key));
@@ -218,6 +193,9 @@ public class App extends Application {
     public static String data(String key) {
         return data.getString(key, "");
     }
+    public static Set<String> dataSet(String key) {
+        return data.getStringSet(key, new HashSet<String>());
+    }
 
     /**
      * Proxy para o armazenameto de dados básico do app, usando key-value
@@ -229,6 +207,11 @@ public class App extends Application {
     public static Boolean data(String key, String value) {
         SharedPreferences.Editor editor = data.edit();
         editor.putString(key, value);
+        return editor.commit();
+    }
+    public static Boolean dataSet(String key, Set<String> value) {
+        SharedPreferences.Editor editor = data.edit();
+        editor.putStringSet(key, value);
         return editor.commit();
     }
 
@@ -276,59 +259,19 @@ public class App extends Application {
     }
 
     /**
-     * HTTP GET Request handler
+     * Salva o recibo de check-in/out na memória do aparelho
      *
-     * @param url URL a ser acessada
-     * @return    HTMl resultante da requisição, "" em caso de problemas
+     * @param game Jogo para o qual foi feito o check*in/out
+     * @param card Cartão onde foi feito o check-in/out
+     * @param data Dados do check-in/out
      */
-    public static String doRequest(String url) {
-        Map<String, String> map = new HashMap<String, String>();
-        return doRequest(url, map);
-    }
-
-    /**
-     * HTTP POST Request handler
-     *
-     * @param url    URL a ser acessada
-     * @param params Dados a serem postados
-     * @return       JSON resultante da requisição, "" em caso de problemas
-     */
-    public static String doRequest(String url, Map<String, String> params) {
-        // building request
-        Request.Builder builder = new Request.Builder().url(url);
-
-        if (!params.isEmpty()) {
-            FormEncodingBuilder formBody = new FormEncodingBuilder();
-
-            // in case of a post request (params not empty), include the post fields
-            Iterator<String> keySetIterator = params.keySet().iterator();
-            while (keySetIterator.hasNext()) {
-                String key = keySetIterator.next();
-                formBody.add(key, params.get(key));
-            }
-            builder.post(formBody.build());
-        }
-
-        Request request = builder.build();
-
-        try {
-            Response response = client.newCall(request).execute();
-            return new String(response.body().bytes(), "ISO-8859-1");
-        } catch (IOException e) {
-            return "";
-        }
-    }
-
-    /**
-     * Salva o recibo de check-in na memória do aparelho
-     *
-     * @param game      Jogo para o qual foi feito o checkin
-     * @param checkinId Id do check-in conforme sistema do inter
-     */
-    public static void printReceipt(Game game,String checkinId) {
+    public static void printReceipt(Game game, Card card, JSONObject data) {
         // Busca o template do comprovante nos resources
+        Boolean in = data.optString("fila") == "";
+
         Resources res = App.context.getResources();
-        Bitmap bitmap = (BitmapFactory.decodeResource(res, R.drawable.comprovante))
+        int resId = in ? R.drawable.comprovante_checkin : R.drawable.comprovante_checkout;
+        Bitmap bitmap = (BitmapFactory.decodeResource(res, resId))
                 .copy(Bitmap.Config.ARGB_8888, true);
         Canvas canvas = new Canvas(bitmap);
 
@@ -337,15 +280,20 @@ public class App extends Application {
         paint.setTextSize(18);
 
         // Pinta os dados sobre o comprovante
-        canvas.drawText(checkinId, 170, 511, paint);
-        canvas.drawText("Inter X "+game.getAway(), 131, 540, paint);
-        canvas.drawText(game.getDate(), 129, 569, paint);
-        canvas.drawText(game.getVenue(), 155, 598, paint);
+        canvas.drawText(data.optString("sid"), 233, 511, paint);
+        canvas.drawText("Inter X "+game.getAway(), 196, 540, paint);
+        canvas.drawText(game.getDate(), 194, 570, paint);
+        canvas.drawText(game.getVenue(), 219, 598, paint);
+        if (!in) {
+            canvas.drawText(data.optString("codigosetor"), 185, 689, paint);
+            canvas.drawText(data.optString("fila"), 266, 689, paint);
+            canvas.drawText(data.optString("nrlugar"), 357, 689, paint);
+        }
 
         // Salva o bitmap :)
         File file = new File(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                "Checkin/checkin "+game.getId()+".jpg");
+                "Checkin/check"+(in?"in-":"out-")+card.getId()+"-"+game.getId()+".jpg");
         file.mkdirs();
         if (file.exists()) file.delete();
         try {
@@ -573,80 +521,34 @@ public class App extends Application {
     }
 }
 
-interface JSONClientCallbackInterface {
-    public void success(JSONObject json);
-}
 
-/**
- * Represents an asynchronous login/registration task used to authenticate
- * the user.
- */
-class JSONClient extends AsyncTask<Void, Void, String> {
+class CheckinClient {
+    final String BASE_URL = "http://www.internacional.com.br/checkin/public/";
+    private static AsyncHttpClient client = new AsyncHttpClient();
 
-    protected String url;
-    protected Map<String, String> params = new HashMap<String, String>();
-    protected JSONClientCallbackInterface callback;
-
-    JSONClient(String url) {
-        this(url, null, null);
-    }
-    JSONClient(String url, JSONClientCallbackInterface callback) {
-        this(url, null, callback);
-    }
-    JSONClient(String url, Map<String, String> params, JSONClientCallbackInterface callback) {
-        this.url = url;
-        this.params = params;
-        this.callback = callback;
+    CheckinClient(Application app) {
+        PersistentCookieStore myCookieStore = new PersistentCookieStore(app);
+        client.setCookieStore(myCookieStore);
     }
 
-    @Override
-    protected String doInBackground(Void... par) {
-        if (params != null && !params.isEmpty()) {
-            String queryString = "?";
+    // ------------------------------------------------------------------------------------- //
+    // - Métodos do client ----------------------------------------------------------------- //
+    // ------------------------------------------------------------------------------------- //
 
-            // in case of a post request (params not empty), include the post fields
-            Iterator<String> keySetIterator = params.keySet().iterator();
-            while (keySetIterator.hasNext()) {
-                String key = keySetIterator.next();
-                queryString = queryString + key + "=" + params.get(key) + "&";
-            }
-
-            url = url + queryString;
-        }
-
-        // building request
-        Request request = new Request.Builder().url(url).build();
-
-        try {
-            Response response = App.client.newCall(request).execute();
-            if (response.isSuccessful()) {
-                return response.body().string();
-                // return new String(response.body().bytes(), "ISO-8859-1");
-            } else {
-                // Evita problemas de 404 ou 50x
-                return "";
-            }
-        } catch (IOException e) {
-            return "";
-        }
+    public void get(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
+        client.get(getAbsoluteUrl(url), params, responseHandler);
     }
 
-    @Override
-    protected void onPostExecute(final String html) {
-        if (callback != null)
-        {
-            JSONObject ret;
-            try {
-                ret = new JSONObject(html);
-            } catch (JSONException e) {
-                ret = null;
-            }
-            callback.success(ret);
-        }
+    public  void post(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
+        client.post(getAbsoluteUrl(url), params, responseHandler);
     }
 
-    @Override
-    protected void onCancelled() {
-        if (callback != null) callback.success(null);
+    private String getAbsoluteUrl(String relativeUrl) {
+        return BASE_URL + relativeUrl;
     }
-}
+
+    // ------------------------------------------------------------------------------------- //
+    // - Métodos da API -------------------------------------------------------------------- //
+    // ------------------------------------------------------------------------------------- //
+
+ }

@@ -1,34 +1,22 @@
 package me.gpsbr.check_in;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.StrictMode;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.CompoundButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.Switch;
 import android.widget.TextView;
 
-import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
-import com.parse.ParseAnalytics;
+import com.loopj.android.http.JsonHttpResponseHandler;
 
+import org.apache.http.Header;
 import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Controller da atividade "CheckinCard"
@@ -134,28 +122,39 @@ public class CheckinCardActivity extends Activity {
     private void buildInterface() {
         game = App.getGame(gameId);
 
+        // Esconde algumas coisas que podem ficar visíveis num resume
+        mCheckinClosedMessage.setVisibility(View.GONE);
+        mCardList.setVisibility(View.GONE);
+
         if (App.cards.isEmpty()) {
             // Busca no servidor a lista de cartões do vivente
             mProgress.setVisibility(View.VISIBLE);
-            String url = "http://www.internacional.com.br/checkin/public/index/jogo?id=" + game.getId();
-            (new JSONClient(url, new JSONClientCallbackInterface() {
+            App.client.get("index/jogo?id=" + game.getId(), null, new JsonHttpResponseHandler() {
                 @Override
-                public void success(JSONObject json) {
+                public void onSuccess(int statusCode, Header[] headers, JSONObject json) {
+                    if (json.optInt("status") == 0 && json.optString("erro").contains("Error")) {
+                        App.toaster(getString(R.string.error_network));
+                        finish();
+                    }
                     mProgress.setVisibility(View.GONE);
                     if (json.optString("erro").equals("")) {
                         // Caso nao retorne nenhuma mensagem de erro, e porque possui cartoes
                         // elegiveis para check-in. Prossegue exibindo a interface
                         App.cards = (new App.Scrapper(json)).getCards();
                         buildInterface();
-                    }
-                    else
-                    {
+                    } else {
                         // Trata o caso de a pessoa não possuir cartões elegíveis para check-in
                         mCheckinClosedMessage.setText(json.optString("erro"));
                         mCheckinClosedMessage.setVisibility(View.VISIBLE);
                     }
                 }
-            })).execute((Void) null);
+                @Override
+                public void onFailure(int statusCode, org.apache.http.Header[] headers,
+                                      Throwable throwable, JSONObject errorResponse) {
+                    App.toaster(getString(R.string.error_network));
+                    finish();
+                }
+            });
         } else {
             // Monta lista de cartões na interface
             ArrayAdapter<Card> adapter = new CardListAdapter();
@@ -207,8 +206,8 @@ public class CheckinCardActivity extends Activity {
             tv.setText(currentCard.getId());
             tv = (TextView)itemView.findViewById(R.id.game_date);
             tv.setText(currentCard.getName());
-            tv = (TextView)itemView.findViewById(R.id.game_venue);
-            tv.setText("");
+            ((LinearLayout)itemView.findViewById(R.id.list_container))
+                    .removeView(itemView.findViewById(R.id.game_venue));
 
             return itemView;
         }
