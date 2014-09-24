@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -17,16 +16,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.loopj.android.http.JsonHttpResponseHandler;
-import com.loopj.android.http.RequestParams;
 import com.parse.ParseAnalytics;
 
 import org.apache.http.Header;
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Controller da atividade "LoginActivity"
@@ -205,7 +198,6 @@ public class LoginActivity extends Activity {
             App.client.get(url, null, new JsonHttpResponseHandler() {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, JSONObject json) {
-                    Log.d(App.TAG, "success: " + String.valueOf(statusCode) + " " + json.toString());
                     if (json.optInt("status", 0) == 0) {
                         // Status 0 significa erro de senha ou matrícula
                         if (json.optString("msg").contains("Erro ao processar")) {
