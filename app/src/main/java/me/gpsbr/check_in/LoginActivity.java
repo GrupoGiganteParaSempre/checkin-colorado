@@ -198,21 +198,19 @@ public class LoginActivity extends Activity {
             App.client.get(url, null, new JsonHttpResponseHandler() {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, JSONObject json) {
-                    if (json.optInt("status", 0) == 0) {
+                    if (json.optInt("status", 0) == 0 && !json.optString("msg").contains("nenhum jogo aberto")) {
                         // Status 0 significa erro de senha ou matrícula
+                        showForm();
                         if (json.optString("msg").contains("Erro ao processar")) {
                             // Mensagem típica de erro na matrícula
-                            showForm();
                             mRegistrationNumber.setError(getString(R.string.error_invalid_registration_number));
                             mRegistrationNumber.requestFocus();
                         } else if (json.optString("msg").contains("Matricula ou senha")) {
                             // Erro na senha então
-                            showForm();
                             mPassword.setError(getString(R.string.error_incorrect_password));
                             mPassword.requestFocus();
                         } else {
                             // Erro interno no site do inter então!
-                            showForm();
                             App.toaster(json.optString("msg"));
                         }
                     } else {
