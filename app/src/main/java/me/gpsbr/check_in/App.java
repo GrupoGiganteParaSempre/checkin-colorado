@@ -322,6 +322,7 @@ public class App extends Application {
         public ArrayList<Game> getGames() {
             ArrayList<Game> games = new ArrayList<Game>();
             JSONObject gameList = json.optJSONObject("jogos");
+            if (gameList == null) return games;
             Iterator<String> keys = gameList.keys();
             while (keys.hasNext()) {
                 String id = keys.next();
