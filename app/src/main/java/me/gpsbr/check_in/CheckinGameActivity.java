@@ -102,7 +102,11 @@ public class CheckinGameActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        buildInterface();
+
+        // Caso o delay aqui seja maior que 5 minutos, recarrega o aplicativo
+        long delay = (System.currentTimeMillis() / 1000L) - App.client.lastRequest;
+        if (delay > 60*5) finish();
+        else buildInterface();
     }
 
     @Override
