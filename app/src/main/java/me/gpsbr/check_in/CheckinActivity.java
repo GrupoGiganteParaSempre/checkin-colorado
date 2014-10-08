@@ -55,8 +55,7 @@ public class CheckinActivity extends Activity {
 
         // Trata aqueles casos onde o usuário ficou um tempo sem acessar o app, e a sessão no site
         // foi pras cucuias. Demos um tempo máximo de 5 minutos ser necessário relogar
-        long delay = (System.currentTimeMillis() / 1000L) - App.client.lastRequest;
-        if (delay > 60*5) {
+        if (App.client.timeout()) {
             (findViewById(R.id.progress)).setVisibility(View.VISIBLE);
             App.relogin(new JsonHttpResponseHandler() {
                 @Override

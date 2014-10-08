@@ -560,6 +560,15 @@ class CheckinClient {
         return BASE_URL + relativeUrl;
     }
 
+    /**
+     * Verifica se a conexão já deu timeout no servidor
+     * @return true Se der pra considerar que a sessão no servidor expirou (timeout de 5 mins)
+     */
+    public boolean timeout() {
+        long delay = (System.currentTimeMillis() / 1000L) - lastRequest;
+        return delay > 60*5;
+    }
+
     // ------------------------------------------------------------------------------------- //
     // - Métodos da API -------------------------------------------------------------------- //
     // ------------------------------------------------------------------------------------- //
