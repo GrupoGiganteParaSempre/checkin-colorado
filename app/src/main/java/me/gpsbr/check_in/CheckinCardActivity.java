@@ -47,7 +47,6 @@ public class CheckinCardActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // setContentView(R.layout.activity_checkin_card);
         setContentView(R.layout.activity_checkin);
 
         // Inicialização das referências de UI
@@ -58,12 +57,14 @@ public class CheckinCardActivity extends Activity {
 
         Intent intent = getIntent();
         gameId = intent.getIntExtra(CheckinActivity.EXTRA_GAME_ID, 0);
+
+        buildInterface();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        buildInterface();
+        if (App.client.timeout()) finish();
     }
 
     @Override
@@ -120,13 +121,14 @@ public class CheckinCardActivity extends Activity {
      * Gera a interface, populando a lista de jogos com os jogos
      */
     private void buildInterface() {
+        (findViewById(R.id.progress)).setVisibility(View.GONE);
         game = App.getGame(gameId);
 
         // Esconde algumas coisas que podem ficar visíveis num resume
         mCheckinClosedMessage.setVisibility(View.GONE);
         mCardList.setVisibility(View.GONE);
 
-        if (App.cards.isEmpty()) {
+//        if (App.cards.isEmpty()) {
             // Busca no servidor a lista de cartões do vivente
             mProgress.setVisibility(View.VISIBLE);
             App.client.get("index/jogo?id=" + game.getId(), null, new JsonHttpResponseHandler() {
@@ -141,7 +143,13 @@ public class CheckinCardActivity extends Activity {
                         // Caso nao retorne nenhuma mensagem de erro, e porque possui cartoes
                         // elegiveis para check-in. Prossegue exibindo a interface
                         App.cards = (new App.Scrapper(json)).getCards();
-                        buildInterface();
+
+                        (findViewById(R.id.progress)).setVisibility(View.GONE);
+                        // Monta lista de cartões na interface
+                        ArrayAdapter<Card> adapter = new CardListAdapter();
+                        mCardList.setVisibility(View.VISIBLE);
+                        mCardList.setAdapter(adapter);
+                        registerClickCallback();
                     } else {
                         // Trata o caso de a pessoa não possuir cartões elegíveis para check-in
                         mCheckinClosedMessage.setText(json.optString("erro"));
@@ -155,13 +163,13 @@ public class CheckinCardActivity extends Activity {
                     finish();
                 }
             });
-        } else {
-            // Monta lista de cartões na interface
-            ArrayAdapter<Card> adapter = new CardListAdapter();
-            mCardList.setVisibility(View.VISIBLE);
-            mCardList.setAdapter(adapter);
-            registerClickCallback();
-        }
+//        } else {
+//            // Monta lista de cartões na interface
+//            ArrayAdapter<Card> adapter = new CardListAdapter();
+//            mCardList.setVisibility(View.VISIBLE);
+//            mCardList.setAdapter(adapter);
+//            registerClickCallback();
+//        }
     }
 
     /**

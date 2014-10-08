@@ -12,6 +12,11 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.loopj.android.http.JsonHttpResponseHandler;
+
+import org.apache.http.Header;
+import org.json.JSONObject;
+
 /**
  * Controller da atividade "Checkin"
  * Esta atividade é mostrada logo após o login, tem como objetivo mostrar uma lista de partidas
@@ -47,7 +52,32 @@ public class CheckinActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        buildInterface();
+
+        // Trata aqueles casos onde o usuário ficou um tempo sem acessar o app, e a sessão no site
+        // foi pras cucuias. Demos um tempo máximo de 5 minutos ser necessário relogar
+        if (App.client.timeout()) {
+            (findViewById(R.id.progress)).setVisibility(View.VISIBLE);
+            App.relogin(new JsonHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, JSONObject json) {
+                    if (json.optInt("status", 0) == 0 && !json.optString("msg").contains("nenhum jogo aberto")) {
+                        App.toaster(App.context.getString(R.string.error_network));
+                        finish();
+                    }
+                    else {
+                        App.buildCheckinFrom(json);
+                        buildInterface();
+                    }
+                }
+                @Override
+                public void onFailure(int statusCode, org.apache.http.Header[] headers,
+                                      Throwable throwable, JSONObject errorResponse) {
+                    App.toaster(App.context.getString(R.string.error_network));
+                    finish();
+                }
+            });
+        }
+        else buildInterface();
     }
 
     @Override
@@ -90,6 +120,7 @@ public class CheckinActivity extends Activity {
      * Gera a interface, populando a lista de jogos com os jogos
      */
     private void buildInterface() {
+        (findViewById(R.id.progress)).setVisibility(View.GONE);
         if (App.games.isEmpty()) {
             // Checkin fechado, esconde a lista de jogos e mostra mensagem
             mCheckinClosedMessage.setVisibility(View.VISIBLE);
