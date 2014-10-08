@@ -26,6 +26,7 @@ import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.Tracker;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.PersistentCookieStore;
 import com.loopj.android.http.RequestParams;
 import com.parse.Parse;
@@ -256,6 +257,14 @@ public class App extends Application {
         // @TODO Mover toda a lógia de login do controller LoginActivity pra cá?
         data("registration_number", registration_number);
         data("password", password);
+    }
+
+    /**
+     * Efetua o login do usuário utilizando as credenciais registradas em memória
+     */
+    public static void relogin(JsonHttpResponseHandler responseHandler) {
+        String url = "?matricula="+App.data("registration_number")+"&senha="+App.data("password");
+        App.client.get(url, null, responseHandler);
     }
 
     /**
@@ -525,6 +534,7 @@ public class App extends Application {
 
 class CheckinClient {
     final String BASE_URL = "http://www.internacional.com.br/checkin/public/";
+    long lastRequest;
     private static AsyncHttpClient client = new AsyncHttpClient();
 
     CheckinClient(Application app) {
@@ -537,15 +547,26 @@ class CheckinClient {
     // ------------------------------------------------------------------------------------- //
 
     public void get(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
+        lastRequest = System.currentTimeMillis() / 1000L;
         client.get(getAbsoluteUrl(url), params, responseHandler);
     }
 
     public  void post(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
+        lastRequest = System.currentTimeMillis() / 1000L;
         client.post(getAbsoluteUrl(url), params, responseHandler);
     }
 
     private String getAbsoluteUrl(String relativeUrl) {
         return BASE_URL + relativeUrl;
+    }
+
+    /**
+     * Verifica se a conexão já deu timeout no servidor
+     * @return true Se der pra considerar que a sessão no servidor expirou (timeout de 5 mins)
+     */
+    public boolean timeout() {
+        long delay = (System.currentTimeMillis() / 1000L) - lastRequest;
+        return delay > 60*5;
     }
 
     // ------------------------------------------------------------------------------------- //

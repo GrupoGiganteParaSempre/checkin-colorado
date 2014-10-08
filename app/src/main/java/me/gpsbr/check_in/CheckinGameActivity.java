@@ -102,7 +102,8 @@ public class CheckinGameActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        buildInterface();
+        if (App.client.timeout()) finish();
+        else buildInterface();
     }
 
     @Override
